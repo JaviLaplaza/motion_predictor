@@ -4,40 +4,11 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="14539e3b-786e-4543-bd65-784237d4a966" name="Default Changelist" comment="Python 2 complay changes">
-      <change afterPath="$PROJECT_DIR$/.gitignore" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/checkpoint/pretrained/amass_3d_in50_out25_dctn30/ckpt_best.pth.tar" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/checkpoint/pretrained/amass_3d_in50_out25_dctn30/ckpt_last.pth.tar" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/checkpoint/pretrained/amass_3d_in50_out25_dctn30/option.json" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/checkpoint/pretrained/amass_3d_in50_out25_dctn30/test.csv" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/checkpoint/pretrained/amass_3d_in50_out25_dctn30/test_bml.csv" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/checkpoint/pretrained/h36m_3d_in50_out10_dctn20/.~lock.test.csv#" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/checkpoint/pretrained/h36m_3d_in50_out10_dctn20/ckpt_best.pth.tar" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/checkpoint/pretrained/h36m_3d_in50_out10_dctn20/ckpt_last.pth.tar" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/checkpoint/pretrained/h36m_3d_in50_out10_dctn20/option.json" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/checkpoint/pretrained/h36m_3d_in50_out10_dctn20/test.csv" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/checkpoint/pretrained/h36m_3d_in50_out10_dctn20/test_in50_in100.csv" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/checkpoint/pretrained/h36m_3d_in50_out10_dctn20/test_pre_action.csv" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/checkpoint/pretrained/h36m_ang_in50_out10_dctn20/ckpt_best.pth.tar" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/checkpoint/pretrained/h36m_ang_in50_out10_dctn20/ckpt_last.pth.tar" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/checkpoint/pretrained/h36m_ang_in50_out10_dctn20/option.json" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/checkpoint/pretrained/h36m_ang_in50_out10_dctn20/test.csv" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/checkpoint/pretrained/h36m_ang_in50_out10_dctn20/test_pre_action.csv" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/checkpoint/pretrained/h36m_ang_in50_out10_dctn20/test_pre_action_256_seq.csv" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/checkpoint/pretrained/seq_selected.csv" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/main_amass_3d.py" beforeDir="false" afterPath="$PROJECT_DIR$/main_amass_3d.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/main_amass_3d_eval.py" beforeDir="false" afterPath="$PROJECT_DIR$/main_amass_3d_eval.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/main_h36m_3d.py" beforeDir="false" afterPath="$PROJECT_DIR$/main_h36m_3d.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/main_h36m_3d_eval.py" beforeDir="false" afterPath="$PROJECT_DIR$/main_h36m_3d_eval.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/main_h36m_ang.py" beforeDir="false" afterPath="$PROJECT_DIR$/main_h36m_ang.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/main_h36m_ang_eval.py" beforeDir="false" afterPath="$PROJECT_DIR$/main_h36m_ang_eval.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/main_selected_seq.py" beforeDir="false" afterPath="$PROJECT_DIR$/main_selected_seq.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/model/AttModel.py" beforeDir="false" afterPath="$PROJECT_DIR$/model/AttModel_original.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/model/GCN.py" beforeDir="false" afterPath="$PROJECT_DIR$/model/GCN.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/utils/data_utils.py" beforeDir="false" afterPath="$PROJECT_DIR$/utils/data_utils.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/utils/opt.py" beforeDir="false" afterPath="$PROJECT_DIR$/utils/opt.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/utils/util.py" beforeDir="false" afterPath="$PROJECT_DIR$/utils/util.py" afterDir="false" />
+    <list default="true" id="14539e3b-786e-4543-bd65-784237d4a966" name="Default Changelist" comment="">
+      <change afterPath="$PROJECT_DIR$/main_iri_handover_3d.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/model/AttModel.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/model/MixAttention.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.gitignore" beforeDir="false" afterPath="$PROJECT_DIR$/.gitignore" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -407,7 +378,7 @@
       <workItem from="1644854727998" duration="1951000" />
       <workItem from="1644858252297" duration="196000" />
       <workItem from="1644858455500" duration="2173000" />
-      <workItem from="1644922527277" duration="1351000" />
+      <workItem from="1644922527277" duration="1591000" />
     </task>
     <task id="LOCAL-00001" summary="Python 2 complay changes">
       <created>1644928560947</created>
@@ -416,7 +387,14 @@
       <option name="project" value="LOCAL" />
       <updated>1644928560947</updated>
     </task>
-    <option name="localTasksCounter" value="2" />
+    <task id="LOCAL-00002" summary="Python 2 complay changes">
+      <created>1644928861046</created>
+      <option name="number" value="00002" />
+      <option name="presentableId" value="LOCAL-00002" />
+      <option name="project" value="LOCAL" />
+      <updated>1644928861046</updated>
+    </task>
+    <option name="localTasksCounter" value="3" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -427,7 +405,19 @@
       <map>
         <entry key="MAIN">
           <value>
-            <State />
+            <State>
+              <option name="FILTERS">
+                <map>
+                  <entry key="branch">
+                    <value>
+                      <list>
+                        <option value="py2.7" />
+                      </list>
+                    </value>
+                  </entry>
+                </map>
+              </option>
+            </State>
           </value>
         </entry>
       </map>
