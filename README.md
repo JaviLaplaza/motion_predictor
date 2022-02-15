@@ -1,90 +1,73 @@
 ## History Repeats Itself: Human Motion Prediction via Motion Attention
-This is the code for the paper
+This is the code for the human skeleton tracker.
 
-Wei Mao, Miaomiao Liu, Mathieu Salzmann. 
-[_History Repeats Itself: Human Motion Prediction via Motion Attention_](https://arxiv.org/abs/2007.11755). In ECCV 20.
+### Installation
 
-### Dependencies
+Install the following dependencies:
+```
+pip install torch==1.4.0 torchvision==0.5.0
+pip install future scipy matplotlib pandas tensorboard
+```
 
-* cuda 10.0
-* Python 3.6
-* [Pytorch](https://github.com/pytorch/pytorch) >1.0.0 (Tested on 1.1.0 and 1.3.0)
+If you are in Ubuntu 20.04, you might need to do the following installation:
+
+```
+pip install grpcio==1.20.1
+```
 
 ### Get the data
+You can request access to the dataset [here](https://drive.google.com/file/d/1kXTmMPh2anxYkT7C5Fla6Z1YOhLL9_dM/view?usp=sharing).
 
-[Human3.6m](http://vision.imar.ro/human3.6m/description.php) in exponential map can be downloaded from [here](http://www.cs.stanford.edu/people/ashesh/h3.6m.zip).
+
+
 
 Directory structure: 
 ```shell script
 H3.6m
 |-- S1
-|-- S5
-|-- S6
+|-- S2
+|-- S3
 |-- ...
-`-- S11
+`-- S10
 ```
-[AMASS](https://amass.is.tue.mpg.de/en) from their official website..
 
-Directory structure:
-```shell script
-amass
-|-- ACCAD
-|-- BioMotionLab_NTroje
-|-- CMU
-|-- ...
-`-- Transitions_mocap
-```
-[3DPW](https://virtualhumans.mpi-inf.mpg.de/3DPW/) from their official website.
+An additional "Tests" folder containing a few tests performed before the actual data collection.
 
-Directory structure: 
-```shell script
-3dpw
-|-- imageFiles
-|   |-- courtyard_arguing_00
-|   |-- courtyard_backpack_00
-|   |-- ...
-`-- sequenceFiles
-    |-- test
-    |-- train
-    `-- validation
-```
-Put the all downloaded datasets in ./datasets directory.
+Put the all downloaded datasets in ./datasets directory or any other path. You can modify the file "opt.py" by changing the value of the "--root_path" parameter with your real dataset path.
 
 ### Training
 All the running args are defined in [opt.py](utils/opt.py). We use following commands to train on different datasets and representations.
-To train,
+
+Simple train with no added features:
 ```bash
-python main_h36m_3d.py --kernel_size 10 --dct_n 20 --input_n 50 --output_n 10 --skip_rate 1 --batch_size 32 --test_batch_size 32 --in_features 66
+python main_iri_handover_3d.py --kernel_size 10 --dct_n 20 --input_n 50 --output_n 40 --skip_rate 5 --batch_size 256 --test_batch_size 128 --in_features 27 --num_heads 5 
 ```
+
+Train with robot end effector data:
 ```bash
-python main_h36m_ang.py --kernel_size 10 --dct_n 20 --input_n 50 --output_n 10 --skip_rate 1 --batch_size 32 --test_batch_size 32 --in_features 48
+python main_iri_handover_3d.py --kernel_size 10 --dct_n 20 --input_n 50 --output_n 40 --skip_rate 5 --batch_size 256 --test_batch_size 128 --in_features 27 --num_heads 5 --goal_features 3 --fusion_model 1
 ```
+
+Train with obstacle position:
 ```bash
-python main_amass_3d.py --kernel_size 10 --dct_n 35 --input_n 50 --output_n 25 --skip_rate 5 --batch_size 128 --test_batch_size 128 --in_features 54 
+python main_iri_handover_3d.py --kernel_size 10 --dct_n 20 --input_n 50 --output_n 40 --skip_rate 5 --batch_size 256 --test_batch_size 128 --in_features 27 --num_heads 5--obstacles_condition --fusion_model 1
 ```
+
+Train with intention and phase classificator:
+```bash
+python main_iri_handover_3d.py --kernel_size 10 --dct_n 20 --input_n 50 --output_n 40 --skip_rate 5 --batch_size 256 --test_batch_size 128 --in_features 27 --num_heads 5 --fusion_model 1 --phase --intention
+```
+
+Training with all options:
+```bash
+python main_iri_handover_3d.py --kernel_size 10 --dct_n 20 --input_n 50 --output_n 40 --skip_rate 5 --batch_size 256 --test_batch_size 128 --in_features 27 --num_heads 5 --goal_features 3 --obstacles_condition --fusion_model 1 --phase --intention
+```
+
 ### Evaluation
-To evaluate the pretrained model,
-```bash
-python main_h36m_3d_eval.py --is_eval --kernel_size 10 --dct_n 20 --input_n 50 --output_n 25 --skip_rate 1 --batch_size 32 --test_batch_size 32 --in_features 66 --ckpt ./checkpoint/pretrained/h36m_3d_in50_out10_dctn20/
-```
-```bash
-python main_h36m_ang_eval.py --is_eval --kernel_size 10 --dct_n 20 --input_n 50 --output_n 25 --skip_rate 1 --batch_size 32 --test_batch_size 32 --in_features 48 --ckpt ./checkpoint/pretrained/h36m_ang_in50_out10_dctn20/
-```
-```bash
-python main_amass_3d_eval.py --is_eval --kernel_size 10 --dct_n 35 --input_n 50 --output_n 25 --skip_rate 5 --batch_size 128 --test_batch_size 128 --in_features 54 --ckpt ./checkpoint/pretrained/amass_3d_in50_out25_dctn30/
-```
+Simply move the recorded weights from the corresponding checkpoint folder to the root folder and execute the script:
 
-### Citing
-
-If you use our code, please cite our work
-
-```
-@inproceedings{wei2020his,
-  title={History Repeats Itself: Human Motion Prediction via Motion Attention},
-  author={Wei, Mao and Miaomiao, Liu and Mathieu, Salzemann},
-  booktitle={ECCV},
-  year={2020}
-}
+```bash
+python main_iri_handover_3d.py --kernel_size 10 --dct_n 20 --input_n 50 --output_n 40 --skip_rate 5 --batch_size 256 --test_batch_size 128 --in_features 27 --num_heads 5 --goal_features 3 --obstacles_condition --fusion_model 1 --phase --intention --is_load --is_eval
 ```
 
 ### Acknowledgments
