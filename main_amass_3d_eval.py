@@ -1,6 +1,6 @@
 from utils import amass3d as datasets
 # from utils import dpw3d as datasets
-from model import AttModel
+from model import AttModel_original
 from utils.opt import Options
 from utils import util
 from utils import log
@@ -26,8 +26,8 @@ def main(opt):
     in_features = opt.in_features  # 54
     d_model = opt.d_model
     kernel_size = opt.kernel_size
-    net_pred = AttModel.AttModel(in_features=in_features, kernel_size=kernel_size, d_model=d_model,
-                                 num_stage=opt.num_stage, dct_n=opt.dct_n)
+    net_pred = AttModel_original.AttModel(in_features=in_features, kernel_size=kernel_size, d_model=d_model,
+                                          num_stage=opt.num_stage, dct_n=opt.dct_n)
     net_pred = nn.DataParallel(net_pred)
     net_pred.cuda()
 

@@ -1,5 +1,5 @@
 from utils import h36motion3d as datasets
-from model import AttModel
+from model import AttModel_original
 from utils.opt import Options
 from utils import util
 from utils import log
@@ -19,8 +19,8 @@ def main(opt):
     batch_size = 1
     opt.ckpt = ckpt
     print('>>> create models')
-    net_pred = AttModel.AttModel(in_features=66, kernel_size=10, d_model=256,
-                                 num_stage=12, dct_n=20)
+    net_pred = AttModel_original.AttModel(in_features=66, kernel_size=10, d_model=256,
+                                          num_stage=12, dct_n=20)
     net_pred.cuda()
     print(">>> total params: {:.2f}M".format(sum(p.numel() for p in net_pred.parameters()) / 1000000.0))
 
