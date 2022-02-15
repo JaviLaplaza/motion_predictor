@@ -1,23 +1,47 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
+  <component name="AutoImportSettings">
+    <option name="autoReloadType" value="SELECTIVE" />
+  </component>
   <component name="ChangeListManager">
-    <list default="true" id="7406131b-6f36-4661-8216-0309efd5b346" name="Default Changelist" comment="">
-      <change beforePath="$PROJECT_DIR$/utils/amass3d.py" beforeDir="false" afterPath="$PROJECT_DIR$/utils/amass3d.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/utils/h36motion.py" beforeDir="false" afterPath="$PROJECT_DIR$/utils/h36motion.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/utils/h36motion3d.py" beforeDir="false" afterPath="$PROJECT_DIR$/utils/h36motion3d.py" afterDir="false" />
+    <list default="true" id="14539e3b-786e-4543-bd65-784237d4a966" name="Default Changelist" comment="">
+      <change afterPath="$PROJECT_DIR$/main_iri_handover_3d.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/model/AttModel.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/model/MixAttention.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.gitignore" beforeDir="false" afterPath="$PROJECT_DIR$/.gitignore" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
     <option name="LAST_RESOLUTION" value="IGNORE" />
   </component>
+  <component name="FileTemplateManagerImpl">
+    <option name="RECENT_TEMPLATES">
+      <list>
+        <option value="Python Script" />
+      </list>
+    </option>
+  </component>
   <component name="Git.Settings">
+    <option name="RECENT_BRANCH_BY_REPOSITORY">
+      <map>
+        <entry key="$PROJECT_DIR$" value="master" />
+      </map>
+    </option>
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
   </component>
-  <component name="ProjectId" id="1eIyYPBEbC2v4iK5IEnWNaHCOuG" />
-  <component name="ProjectLevelVcsManager">
-    <ConfirmationsSetting value="1" id="Add" />
+  <component name="GitSEFilterConfiguration">
+    <file-type-list>
+      <filtered-out-file-type name="LOCAL_BRANCH" />
+      <filtered-out-file-type name="REMOTE_BRANCH" />
+      <filtered-out-file-type name="TAG" />
+      <filtered-out-file-type name="COMMIT_BY_MESSAGE" />
+    </file-type-list>
   </component>
+  <component name="MarkdownSettingsMigration">
+    <option name="stateVersion" value="1" />
+  </component>
+  <component name="ProjectId" id="1slQ7UWYoaHDiSQMiLmP6bUwnEh" />
   <component name="ProjectViewState">
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
@@ -25,7 +49,12 @@
   <component name="PropertiesComponent">
     <property name="RunOnceActivity.OpenProjectViewOnStart" value="true" />
     <property name="RunOnceActivity.ShowReadmeOnStart" value="true" />
-    <property name="last_opened_file_path" value="$PROJECT_DIR$" />
+    <property name="WebServerToolWindowFactoryState" value="false" />
+    <property name="last_opened_file_path" value="$PROJECT_DIR$/main_iri_handover_3d_gan.py" />
+    <property name="node.js.detected.package.eslint" value="true" />
+    <property name="node.js.detected.package.tslint" value="true" />
+    <property name="node.js.selected.package.eslint" value="(autodetect)" />
+    <property name="node.js.selected.package.tslint" value="(autodetect)" />
     <property name="settings.editor.selected.configurable" value="com.jetbrains.python.configuration.PyActiveSdkModuleConfigurable" />
   </component>
   <component name="RecentsManager">
@@ -33,21 +62,24 @@
       <recent name="$PROJECT_DIR$" />
     </key>
   </component>
-  <component name="RunManager" selected="Python.main_h36m_3d_eval">
-    <configuration name="main_amass_3d" type="PythonConfigurationType" factoryName="Python" nameIsGenerated="true">
+  <component name="RunManager" selected="Python.main_iri_handover">
+    <configuration name="AttModel" type="PythonConfigurationType" factoryName="Python">
       <module name="HisRepItself" />
       <option name="INTERPRETER_OPTIONS" value="" />
       <option name="PARENT_ENVS" value="true" />
       <envs>
         <env name="PYTHONUNBUFFERED" value="1" />
+        <env name="OMP_NUM_THREADS" value="4" />
+        <env name="CUDA_VISIBLE_DEVICES" value="0" />
       </envs>
-      <option name="SDK_HOME" value="" />
-      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$" />
-      <option name="IS_MODULE_SDK" value="true" />
+      <option name="SDK_HOME" value="$USER_HOME$/miniconda3/envs/IRI-DL/bin/python" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/model" />
+      <option name="IS_MODULE_SDK" value="false" />
       <option name="ADD_CONTENT_ROOTS" value="true" />
       <option name="ADD_SOURCE_ROOTS" value="true" />
-      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/main_amass_3d.py" />
-      <option name="PARAMETERS" value="--in_features 54 --kernel_size 10 --dct_n 20 --input_n 50 --output_n 10 --skip_rate 5" />
+      <EXTENSION ID="PythonCoverageRunConfigurationExtension" runner="coverage.py" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/model/AttModel.py" />
+      <option name="PARAMETERS" value="--kernel_size 10 --dct_n 20 --input_n 50 --output_n 10 --skip_rate 1 --batch_size 32 --test_batch_size 32 --in_features 33" />
       <option name="SHOW_COMMAND_LINE" value="false" />
       <option name="EMULATE_TERMINAL" value="false" />
       <option name="MODULE_MODE" value="false" />
@@ -55,20 +87,23 @@
       <option name="INPUT_FILE" value="" />
       <method v="2" />
     </configuration>
-    <configuration name="main_amass_3d_eval" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
+    <configuration name="Graph NN" type="PythonConfigurationType" factoryName="Python" singleton="false">
       <module name="HisRepItself" />
       <option name="INTERPRETER_OPTIONS" value="" />
       <option name="PARENT_ENVS" value="true" />
       <envs>
         <env name="PYTHONUNBUFFERED" value="1" />
+        <env name="OMP_NUM_THREADS" value="4" />
+        <env name="CUDA_VISIBLE_DEVICES" value="0" />
       </envs>
-      <option name="SDK_HOME" value="" />
-      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$" />
-      <option name="IS_MODULE_SDK" value="true" />
+      <option name="SDK_HOME" value="$USER_HOME$/miniconda3/envs/IRI-DL/bin/python" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/model" />
+      <option name="IS_MODULE_SDK" value="false" />
       <option name="ADD_CONTENT_ROOTS" value="true" />
       <option name="ADD_SOURCE_ROOTS" value="true" />
-      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/main_amass_3d_eval.py" />
-      <option name="PARAMETERS" value="--is_eval --kernel_size 10 --dct_n 30 --input_n 50 --output_n 25 --skip_rate 5 --batch_size 128 --test_batch_size 64 --ckpt ./checkpoint/pretrained/main_att_model_v9_6_7_motion_amass_para_in50_out25_5_ks10_dmodel256_stg12_lr0.0005_gn10000_dctn30_sr5/" />
+      <EXTENSION ID="PythonCoverageRunConfigurationExtension" runner="coverage.py" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/model/GCN.py" />
+      <option name="PARAMETERS" value="" />
       <option name="SHOW_COMMAND_LINE" value="false" />
       <option name="EMULATE_TERMINAL" value="false" />
       <option name="MODULE_MODE" value="false" />
@@ -76,21 +111,23 @@
       <option name="INPUT_FILE" value="" />
       <method v="2" />
     </configuration>
-    <configuration name="main_h36m_3d" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
+    <configuration name="MixAttention" type="PythonConfigurationType" factoryName="Python">
       <module name="HisRepItself" />
       <option name="INTERPRETER_OPTIONS" value="" />
       <option name="PARENT_ENVS" value="true" />
       <envs>
         <env name="PYTHONUNBUFFERED" value="1" />
-        <env name="CUDA_VISIBLE_DEVICES" value="1" />
+        <env name="OMP_NUM_THREADS" value="4" />
+        <env name="CUDA_VISIBLE_DEVICES" value="0" />
       </envs>
-      <option name="SDK_HOME" value="" />
-      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$" />
-      <option name="IS_MODULE_SDK" value="true" />
+      <option name="SDK_HOME" value="$USER_HOME$/miniconda3/envs/IRI-DL/bin/python" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/model" />
+      <option name="IS_MODULE_SDK" value="false" />
       <option name="ADD_CONTENT_ROOTS" value="true" />
       <option name="ADD_SOURCE_ROOTS" value="true" />
-      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/main_h36m_3d.py" />
-      <option name="PARAMETERS" value="--in_features 66 --kernel_size 10 --dct_n 20 --input_n 50 --output_n 10 --skip_rate 5" />
+      <EXTENSION ID="PythonCoverageRunConfigurationExtension" runner="coverage.py" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/model/MixAttention.py" />
+      <option name="PARAMETERS" value="--kernel_size 10 --dct_n 20 --input_n 50 --output_n 10 --skip_rate 1 --batch_size 32 --test_batch_size 32 --in_features 33" />
       <option name="SHOW_COMMAND_LINE" value="false" />
       <option name="EMULATE_TERMINAL" value="false" />
       <option name="MODULE_MODE" value="false" />
@@ -98,20 +135,47 @@
       <option name="INPUT_FILE" value="" />
       <method v="2" />
     </configuration>
-    <configuration name="main_h36m_3d_eval" type="PythonConfigurationType" factoryName="Python" nameIsGenerated="true">
+    <configuration name="discriminator" type="PythonConfigurationType" factoryName="Python" singleton="false">
       <module name="HisRepItself" />
       <option name="INTERPRETER_OPTIONS" value="" />
       <option name="PARENT_ENVS" value="true" />
       <envs>
         <env name="PYTHONUNBUFFERED" value="1" />
+        <env name="OMP_NUM_THREADS" value="4" />
+        <env name="CUDA_VISIBLE_DEVICES" value="0" />
       </envs>
-      <option name="SDK_HOME" value="$USER_HOME$/anaconda3/envs/pytorch3130/bin/python" />
+      <option name="SDK_HOME" value="$USER_HOME$/miniconda3/envs/IRI-DL/bin/python" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/model" />
+      <option name="IS_MODULE_SDK" value="false" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <EXTENSION ID="PythonCoverageRunConfigurationExtension" runner="coverage.py" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/model/Discriminator.py" />
+      <option name="PARAMETERS" value="--kernel_size 10 --dct_n 20 --input_n 50 --output_n 25 --skip_rate 5 --batch_size 256 --test_batch_size 256 --in_features 33 --num_heads 4 --part_condition --goal_features 3 --fusion_model 1 --is_eval" />
+      <option name="SHOW_COMMAND_LINE" value="false" />
+      <option name="EMULATE_TERMINAL" value="false" />
+      <option name="MODULE_MODE" value="false" />
+      <option name="REDIRECT_INPUT" value="false" />
+      <option name="INPUT_FILE" value="" />
+      <method v="2" />
+    </configuration>
+    <configuration name="main_iri_handover" type="PythonConfigurationType" factoryName="Python" singleton="false">
+      <module name="HisRepItself" />
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <envs>
+        <env name="PYTHONUNBUFFERED" value="1" />
+        <env name="OMP_NUM_THREADS" value="4" />
+        <env name="CUDA_VISIBLE_DEVICES" value="0" />
+      </envs>
+      <option name="SDK_HOME" value="$PROJECT_DIR$/venv/bin/python" />
       <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$" />
       <option name="IS_MODULE_SDK" value="false" />
       <option name="ADD_CONTENT_ROOTS" value="true" />
       <option name="ADD_SOURCE_ROOTS" value="true" />
-      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/main_h36m_3d_eval.py" />
-      <option name="PARAMETERS" value="--is_eval --ckpt $PROJECT_DIR$/checkpoint/pretrained/h36m_3d_in50_out10_dctn20/ --input_n 50 --output_n 25 --kernel_size 10 --dct_n 20" />
+      <EXTENSION ID="PythonCoverageRunConfigurationExtension" runner="coverage.py" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/main_iri_handover_3d.py" />
+      <option name="PARAMETERS" value="--kernel_size 10 --dct_n 20 --input_n 50 --output_n 40 --skip_rate 5 --batch_size 256 --test_batch_size 128 --in_features 27 --num_heads 5 --goal_features 3 --obstacles_condition --fusion_model 1 --phase --intention" />
       <option name="SHOW_COMMAND_LINE" value="false" />
       <option name="EMULATE_TERMINAL" value="false" />
       <option name="MODULE_MODE" value="false" />
@@ -119,20 +183,23 @@
       <option name="INPUT_FILE" value="" />
       <method v="2" />
     </configuration>
-    <configuration name="main_h36m_ang" type="PythonConfigurationType" factoryName="Python" nameIsGenerated="true">
+    <configuration name="main_iri_handover_gan" type="PythonConfigurationType" factoryName="Python" singleton="false">
       <module name="HisRepItself" />
       <option name="INTERPRETER_OPTIONS" value="" />
       <option name="PARENT_ENVS" value="true" />
       <envs>
         <env name="PYTHONUNBUFFERED" value="1" />
+        <env name="OMP_NUM_THREADS" value="4" />
+        <env name="CUDA_VISIBLE_DEVICES" value="0" />
       </envs>
-      <option name="SDK_HOME" value="$USER_HOME$/anaconda3/envs/pytorch3130/bin/python" />
+      <option name="SDK_HOME" value="$USER_HOME$/miniconda3/envs/IRI-DL/bin/python" />
       <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$" />
       <option name="IS_MODULE_SDK" value="false" />
       <option name="ADD_CONTENT_ROOTS" value="true" />
       <option name="ADD_SOURCE_ROOTS" value="true" />
-      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/main_h36m_ang.py" />
-      <option name="PARAMETERS" value="--in_features 48 --kernel_size 10 --dct_n 20 --input_n 50 --output_n 10 --skip_rate 5" />
+      <EXTENSION ID="PythonCoverageRunConfigurationExtension" runner="coverage.py" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/main_iri_handover_3d_gan.py" />
+      <option name="PARAMETERS" value="--kernel_size 10 --dct_n 20 --input_n 50 --output_n 25 --skip_rate 5 --batch_size 256 --test_batch_size 128 --in_features 27 --num_heads 10 --goal_features 3 --obstacles_condition --fusion_model 1 --phase --intention --is_load" />
       <option name="SHOW_COMMAND_LINE" value="false" />
       <option name="EMULATE_TERMINAL" value="false" />
       <option name="MODULE_MODE" value="false" />
@@ -140,21 +207,23 @@
       <option name="INPUT_FILE" value="" />
       <method v="2" />
     </configuration>
-    <configuration name="main_h36m_ang_eval" type="PythonConfigurationType" factoryName="Python" nameIsGenerated="true">
+    <configuration name="main_iri_handover_no_phase" type="PythonConfigurationType" factoryName="Python" singleton="false">
       <module name="HisRepItself" />
       <option name="INTERPRETER_OPTIONS" value="" />
       <option name="PARENT_ENVS" value="true" />
       <envs>
         <env name="PYTHONUNBUFFERED" value="1" />
-        <env name="CUDA_VISIBLE_DEVICES" value="1" />
+        <env name="OMP_NUM_THREADS" value="4" />
+        <env name="CUDA_VISIBLE_DEVICES" value="0" />
       </envs>
-      <option name="SDK_HOME" value="$USER_HOME$/anaconda3/envs/pytorch3130/bin/python" />
+      <option name="SDK_HOME" value="$USER_HOME$/miniconda3/envs/IRI-DL/bin/python" />
       <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$" />
       <option name="IS_MODULE_SDK" value="false" />
       <option name="ADD_CONTENT_ROOTS" value="true" />
       <option name="ADD_SOURCE_ROOTS" value="true" />
-      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/main_h36m_ang_eval.py" />
-      <option name="PARAMETERS" value="--is_eval --input_n 50 --output_n 25 --dct_n 20 --kernel_size 10 --ckpt $PROJECT_DIR$/checkpoint/pretrained/h36m_ang_in50_out10_dctn20" />
+      <EXTENSION ID="PythonCoverageRunConfigurationExtension" runner="coverage.py" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/main_iri_handover_3d.py" />
+      <option name="PARAMETERS" value="--kernel_size 10 --dct_n 20 --input_n 50 --output_n 25 --skip_rate 5 --batch_size 256 --test_batch_size 128 --in_features 27 --num_heads 4 --goal_features 3 --obstacles_condition --fusion_model 1" />
       <option name="SHOW_COMMAND_LINE" value="false" />
       <option name="EMULATE_TERMINAL" value="false" />
       <option name="MODULE_MODE" value="false" />
@@ -162,20 +231,23 @@
       <option name="INPUT_FILE" value="" />
       <method v="2" />
     </configuration>
-    <configuration name="main_selected_seq" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
+    <configuration name="mediapipe" type="PythonConfigurationType" factoryName="Python" singleton="false">
       <module name="HisRepItself" />
       <option name="INTERPRETER_OPTIONS" value="" />
       <option name="PARENT_ENVS" value="true" />
       <envs>
         <env name="PYTHONUNBUFFERED" value="1" />
+        <env name="OMP_NUM_THREADS" value="4" />
+        <env name="CUDA_VISIBLE_DEVICES" value="0" />
       </envs>
-      <option name="SDK_HOME" value="" />
+      <option name="SDK_HOME" value="$USER_HOME$/miniconda3/envs/IRI-DL/bin/python" />
       <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$" />
-      <option name="IS_MODULE_SDK" value="true" />
+      <option name="IS_MODULE_SDK" value="false" />
       <option name="ADD_CONTENT_ROOTS" value="true" />
       <option name="ADD_SOURCE_ROOTS" value="true" />
-      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/main_selected_seq.py" />
-      <option name="PARAMETERS" value="--is_eval --input_n 100 --output_n 25" />
+      <EXTENSION ID="PythonCoverageRunConfigurationExtension" runner="coverage.py" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/utils/mediapipe_handover_3d.py" />
+      <option name="PARAMETERS" value="--kernel_size 10 --dct_n 20 --input_n 50 --output_n 25 --skip_rate 5 --batch_size 256 --test_batch_size 256 --in_features 33 --num_heads 4 --part_condition --goal_features 3 --fusion_model 1 --is_eval" />
       <option name="SHOW_COMMAND_LINE" value="false" />
       <option name="EMULATE_TERMINAL" value="false" />
       <option name="MODULE_MODE" value="false" />
@@ -184,137 +256,184 @@
       <method v="2" />
     </configuration>
     <list>
-      <item itemvalue="Python.main_h36m_3d_eval" />
-      <item itemvalue="Python.main_h36m_ang" />
-      <item itemvalue="Python.main_h36m_ang_eval" />
-      <item itemvalue="Python.main_amass_3d" />
-      <item itemvalue="Python.main_amass_3d_eval" />
-      <item itemvalue="Python.main_h36m_3d" />
-      <item itemvalue="Python.main_selected_seq" />
+      <item itemvalue="Python.main_iri_handover" />
+      <item itemvalue="Python.main_iri_handover_gan" />
+      <item itemvalue="Python.Graph NN" />
+      <item itemvalue="Python.main_iri_handover_no_phase" />
+      <item itemvalue="Python.mediapipe" />
+      <item itemvalue="Python.discriminator" />
+      <item itemvalue="Python.AttModel" />
+      <item itemvalue="Python.MixAttention" />
     </list>
-    <recent_temporary>
-      <list>
-        <item itemvalue="Python.main_h36m_3d" />
-        <item itemvalue="Python.main_selected_seq" />
-        <item itemvalue="Python.main_amass_3d_eval" />
-      </list>
-    </recent_temporary>
   </component>
-  <component name="SvnConfiguration">
-    <configuration />
-  </component>
+  <component name="SpellCheckerSettings" RuntimeDictionaries="0" Folders="0" CustomDictionaries="0" DefaultDictionary="application-level" UseSingleDictionary="true" transferred="true" />
   <component name="TaskManager">
     <task active="true" id="Default" summary="Default task">
-      <changelist id="7406131b-6f36-4661-8216-0309efd5b346" name="Default Changelist" comment="" />
-      <created>1594023448347</created>
+      <changelist id="14539e3b-786e-4543-bd65-784237d4a966" name="Default Changelist" comment="" />
+      <created>1621444528479</created>
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
-      <updated>1594023448347</updated>
+      <updated>1621444528479</updated>
+      <workItem from="1621444529962" duration="29720000" />
+      <workItem from="1621594292479" duration="3486000" />
+      <workItem from="1621928520565" duration="7959000" />
+      <workItem from="1622445226798" duration="3497000" />
+      <workItem from="1622478312945" duration="5152000" />
+      <workItem from="1622533286446" duration="5324000" />
+      <workItem from="1622619681687" duration="7237000" />
+      <workItem from="1622647202288" duration="2960000" />
+      <workItem from="1622670642574" duration="6254000" />
+      <workItem from="1622797274651" duration="1454000" />
+      <workItem from="1623225467578" duration="12312000" />
+      <workItem from="1623311348424" duration="5591000" />
+      <workItem from="1623656806788" duration="15267000" />
+      <workItem from="1623829438664" duration="16915000" />
+      <workItem from="1623915886003" duration="5306000" />
+      <workItem from="1623939553317" duration="3916000" />
+      <workItem from="1624970524987" duration="1986000" />
+      <workItem from="1625160098246" duration="1541000" />
+      <workItem from="1631227900748" duration="11885000" />
+      <workItem from="1633343788281" duration="1984000" />
+      <workItem from="1633524201226" duration="3443000" />
+      <workItem from="1633687858375" duration="7089000" />
+      <workItem from="1633940646658" duration="9240000" />
+      <workItem from="1634035077178" duration="9218000" />
+      <workItem from="1634110641568" duration="16680000" />
+      <workItem from="1634197545549" duration="6126000" />
+      <workItem from="1634228993062" duration="3600000" />
+      <workItem from="1634287159593" duration="2301000" />
+      <workItem from="1634656358653" duration="4939000" />
+      <workItem from="1634896841380" duration="5977000" />
+      <workItem from="1635148846717" duration="11109000" />
+      <workItem from="1635250336907" duration="10205000" />
+      <workItem from="1635320565095" duration="16080000" />
+      <workItem from="1635407042767" duration="1201000" />
+      <workItem from="1635592334178" duration="1239000" />
+      <workItem from="1635766039684" duration="14337000" />
+      <workItem from="1635872787727" duration="1745000" />
+      <workItem from="1635946504946" duration="4943000" />
+      <workItem from="1635960740236" duration="7501000" />
+      <workItem from="1636011970565" duration="433000" />
+      <workItem from="1636209027485" duration="6049000" />
+      <workItem from="1636291046528" duration="19138000" />
+      <workItem from="1636478097516" duration="5373000" />
+      <workItem from="1636534461875" duration="10488000" />
+      <workItem from="1636570863784" duration="6456000" />
+      <workItem from="1636727638745" duration="9302000" />
+      <workItem from="1636997705609" duration="1947000" />
+      <workItem from="1637085481316" duration="7982000" />
+      <workItem from="1637138868967" duration="9397000" />
+      <workItem from="1637197440413" duration="10822000" />
+      <workItem from="1637743552748" duration="7921000" />
+      <workItem from="1637770493099" duration="4948000" />
+      <workItem from="1637831387552" duration="10977000" />
+      <workItem from="1637926890698" duration="9367000" />
+      <workItem from="1638202408865" duration="23795000" />
+      <workItem from="1638368538078" duration="4309000" />
+      <workItem from="1638402057479" duration="11549000" />
+      <workItem from="1638878028382" duration="9881000" />
+      <workItem from="1638897533879" duration="1948000" />
+      <workItem from="1638963558247" duration="15838000" />
+      <workItem from="1639073061862" duration="448000" />
+      <workItem from="1639137248659" duration="1986000" />
+      <workItem from="1639334639314" duration="9930000" />
+      <workItem from="1639385546555" duration="3375000" />
+      <workItem from="1639510161635" duration="4633000" />
+      <workItem from="1639558574908" duration="6788000" />
+      <workItem from="1639570377650" duration="8229000" />
+      <workItem from="1640024051133" duration="7148000" />
+      <workItem from="1640082179246" duration="3722000" />
+      <workItem from="1640254231460" duration="10246000" />
+      <workItem from="1641132159857" duration="1622000" />
+      <workItem from="1641195223598" duration="3285000" />
+      <workItem from="1641305863823" duration="6133000" />
+      <workItem from="1641559146596" duration="2544000" />
+      <workItem from="1641800527172" duration="628000" />
+      <workItem from="1641820386683" duration="684000" />
+      <workItem from="1641903979638" duration="4853000" />
+      <workItem from="1641973270024" duration="3072000" />
+      <workItem from="1641993520846" duration="3889000" />
+      <workItem from="1642059024993" duration="7846000" />
+      <workItem from="1642085331038" duration="7744000" />
+      <workItem from="1642517098943" duration="3582000" />
+      <workItem from="1642578235441" duration="5128000" />
+      <workItem from="1642664091690" duration="3277000" />
+      <workItem from="1642938571792" duration="158000" />
+      <workItem from="1643009573713" duration="12635000" />
+      <workItem from="1643128604607" duration="445000" />
+      <workItem from="1643182402582" duration="5472000" />
+      <workItem from="1643220559706" duration="6731000" />
+      <workItem from="1643369287987" duration="9669000" />
+      <workItem from="1643425156536" duration="2498000" />
+      <workItem from="1643614936550" duration="2548000" />
+      <workItem from="1643746914947" duration="3547000" />
+      <workItem from="1643758016783" duration="17854000" />
+      <workItem from="1643827310312" duration="3560000" />
+      <workItem from="1643977873830" duration="2684000" />
+      <workItem from="1644219077238" duration="2466000" />
+      <workItem from="1644267581987" duration="772000" />
+      <workItem from="1644401778381" duration="277000" />
+      <workItem from="1644402063012" duration="6611000" />
+      <workItem from="1644484951109" duration="2579000" />
+      <workItem from="1644854727998" duration="1951000" />
+      <workItem from="1644858252297" duration="196000" />
+      <workItem from="1644858455500" duration="2173000" />
+      <workItem from="1644922527277" duration="1591000" />
     </task>
+    <task id="LOCAL-00001" summary="Python 2 complay changes">
+      <created>1644928560947</created>
+      <option name="number" value="00001" />
+      <option name="presentableId" value="LOCAL-00001" />
+      <option name="project" value="LOCAL" />
+      <updated>1644928560947</updated>
+    </task>
+    <task id="LOCAL-00002" summary="Python 2 complay changes">
+      <created>1644928861046</created>
+      <option name="number" value="00002" />
+      <option name="presentableId" value="LOCAL-00002" />
+      <option name="project" value="LOCAL" />
+      <updated>1644928861046</updated>
+    </task>
+    <option name="localTasksCounter" value="3" />
     <servers />
   </component>
-  <component name="WindowStateProjectService">
-    <state x="541" y="346" width="1071" height="679" key="#com.intellij.execution.impl.EditConfigurationsDialog" timestamp="1595204924734">
-      <screen x="65" y="24" width="1855" height="1056" />
-    </state>
-    <state x="541" y="346" width="1071" height="679" key="#com.intellij.execution.impl.EditConfigurationsDialog/1920.0.1920.1080/65.24.1855.1056@1920.0.1920.1080" timestamp="1595204924734" />
-    <state x="457" y="197" key="#com.intellij.execution.impl.EditConfigurationsDialog/1920.0.1920.1080/65.24.1855.1056@65.24.1855.1056" timestamp="1594035810925" />
-    <state x="730" y="287" key="#com.intellij.refactoring.safeDelete.UnsafeUsagesDialog" timestamp="1594026308339">
-      <screen x="65" y="24" width="1855" height="1056" />
-    </state>
-    <state x="730" y="287" key="#com.intellij.refactoring.safeDelete.UnsafeUsagesDialog/1920.0.1920.1080/65.24.1855.1056@65.24.1855.1056" timestamp="1594026308339" />
-    <state width="1846" height="538" key="DebuggerActiveHint" timestamp="1594526841701">
-      <screen x="1920" y="0" width="1920" height="1080" />
-    </state>
-    <state width="1846" height="538" key="DebuggerActiveHint/1920.0.1920.1080/65.24.1855.1056@1920.0.1920.1080" timestamp="1594526841701" />
-    <state width="1783" height="526" key="DebuggerActiveHint/1920.0.1920.1080/65.24.1855.1056@65.24.1855.1056" timestamp="1594036789296" />
-    <state x="916" y="419" key="EnvironmentVariablesDialog" timestamp="1594213375476">
-      <screen x="65" y="24" width="1855" height="1056" />
-    </state>
-    <state x="916" y="419" key="EnvironmentVariablesDialog/1920.0.1920.1080/65.24.1855.1056@1920.0.1920.1080" timestamp="1594213375476" />
-    <state x="2699" y="296" width="424" height="482" key="FileChooserDialogImpl" timestamp="1594213621879">
-      <screen x="1920" y="0" width="1920" height="1080" />
-    </state>
-    <state x="2699" y="296" width="424" height="482" key="FileChooserDialogImpl/1920.0.1920.1080/65.24.1855.1056@1920.0.1920.1080" timestamp="1594213621879" />
-    <state width="1832" height="425" key="GridCell.Tab.0.bottom" timestamp="1594775495818">
-      <screen x="1920" y="0" width="1920" height="1080" />
-    </state>
-    <state width="1832" height="425" key="GridCell.Tab.0.bottom/1920.0.1920.1080/65.24.1855.1056@1920.0.1920.1080" timestamp="1594775495818" />
-    <state width="1832" height="303" key="GridCell.Tab.0.bottom/1920.0.1920.1080/65.24.1855.1056@65.24.1855.1056" timestamp="1594037047968" />
-    <state width="1832" height="425" key="GridCell.Tab.0.center" timestamp="1594775495818">
-      <screen x="1920" y="0" width="1920" height="1080" />
-    </state>
-    <state width="1832" height="425" key="GridCell.Tab.0.center/1920.0.1920.1080/65.24.1855.1056@1920.0.1920.1080" timestamp="1594775495818" />
-    <state width="1832" height="303" key="GridCell.Tab.0.center/1920.0.1920.1080/65.24.1855.1056@65.24.1855.1056" timestamp="1594037047968" />
-    <state width="1832" height="425" key="GridCell.Tab.0.left" timestamp="1594775495818">
-      <screen x="1920" y="0" width="1920" height="1080" />
-    </state>
-    <state width="1832" height="425" key="GridCell.Tab.0.left/1920.0.1920.1080/65.24.1855.1056@1920.0.1920.1080" timestamp="1594775495818" />
-    <state width="1832" height="303" key="GridCell.Tab.0.left/1920.0.1920.1080/65.24.1855.1056@65.24.1855.1056" timestamp="1594037047968" />
-    <state width="1832" height="425" key="GridCell.Tab.0.right" timestamp="1594775495818">
-      <screen x="1920" y="0" width="1920" height="1080" />
-    </state>
-    <state width="1832" height="425" key="GridCell.Tab.0.right/1920.0.1920.1080/65.24.1855.1056@1920.0.1920.1080" timestamp="1594775495818" />
-    <state width="1832" height="303" key="GridCell.Tab.0.right/1920.0.1920.1080/65.24.1855.1056@65.24.1855.1056" timestamp="1594037047968" />
-    <state width="1855" height="1000" key="GridCell.Tab.1.bottom" timestamp="1594543813415">
-      <screen x="1920" y="0" width="1920" height="1080" />
-    </state>
-    <state width="1855" height="1000" key="GridCell.Tab.1.bottom/1920.0.1920.1080/65.24.1855.1056@1920.0.1920.1080" timestamp="1594543813415" />
-    <state width="1855" height="1000" key="GridCell.Tab.1.bottom/1920.0.1920.1080/65.24.1855.1056@65.24.1855.1056" timestamp="1594037047965" />
-    <state width="1855" height="1000" key="GridCell.Tab.1.center" timestamp="1594543813415">
-      <screen x="1920" y="0" width="1920" height="1080" />
-    </state>
-    <state width="1855" height="1000" key="GridCell.Tab.1.center/1920.0.1920.1080/65.24.1855.1056@1920.0.1920.1080" timestamp="1594543813415" />
-    <state width="1855" height="1000" key="GridCell.Tab.1.center/1920.0.1920.1080/65.24.1855.1056@65.24.1855.1056" timestamp="1594037047965" />
-    <state width="1855" height="1000" key="GridCell.Tab.1.left" timestamp="1594543813415">
-      <screen x="1920" y="0" width="1920" height="1080" />
-    </state>
-    <state width="1855" height="1000" key="GridCell.Tab.1.left/1920.0.1920.1080/65.24.1855.1056@1920.0.1920.1080" timestamp="1594543813415" />
-    <state width="1855" height="1000" key="GridCell.Tab.1.left/1920.0.1920.1080/65.24.1855.1056@65.24.1855.1056" timestamp="1594037047965" />
-    <state width="1855" height="1000" key="GridCell.Tab.1.right" timestamp="1594543813415">
-      <screen x="1920" y="0" width="1920" height="1080" />
-    </state>
-    <state width="1855" height="1000" key="GridCell.Tab.1.right/1920.0.1920.1080/65.24.1855.1056@1920.0.1920.1080" timestamp="1594543813415" />
-    <state width="1855" height="1000" key="GridCell.Tab.1.right/1920.0.1920.1080/65.24.1855.1056@65.24.1855.1056" timestamp="1594037047965" />
-    <state x="2349" y="153" key="SettingsEditor" timestamp="1595203253815">
-      <screen x="1920" y="0" width="1920" height="1080" />
-    </state>
-    <state x="2349" y="153" key="SettingsEditor/1920.0.1920.1080/65.24.1855.1056@1920.0.1920.1080" timestamp="1595203253815" />
-    <state x="479" y="174" key="SettingsEditor/1920.0.1920.1080/65.24.1855.1056@65.24.1855.1056" timestamp="1594023902215" />
-    <state width="960" height="555" key="XDebugger.FullValuePopup" timestamp="1594080330340">
-      <screen x="1920" y="0" width="1920" height="1080" />
-    </state>
-    <state width="960" height="555" key="XDebugger.FullValuePopup/1920.0.1920.1080/65.24.1855.1056@1920.0.1920.1080" timestamp="1594080330340" />
-    <state width="927" height="542" key="XDebugger.FullValuePopup/1920.0.1920.1080/65.24.1855.1056@65.24.1855.1056" timestamp="1594036516013" />
-    <state x="2523" y="364" width="641" height="608" key="find.popup" timestamp="1594026065513">
-      <screen x="1920" y="0" width="1920" height="1080" />
-    </state>
-    <state x="2523" y="364" width="641" height="608" key="find.popup/1920.0.1920.1080/65.24.1855.1056@65.24.1855.1056" timestamp="1594026065513" />
+  <component name="TypeScriptGeneratedFilesManager">
+    <option name="version" value="3" />
   </component>
-  <component name="XDebuggerManager">
-    <breakpoint-manager>
-      <breakpoints>
-        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
-          <url>file://$PROJECT_DIR$/main_amass_3d.py</url>
-          <line>133</line>
-          <option name="timeStamp" value="5" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
-          <url>file://$PROJECT_DIR$/main_h36m_3d.py</url>
-          <line>155</line>
-          <option name="timeStamp" value="12" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
-          <url>file://$PROJECT_DIR$/utils/amass3d.py</url>
-          <line>58</line>
-          <option name="timeStamp" value="13" />
-        </line-breakpoint>
-      </breakpoints>
-    </breakpoint-manager>
-    <watches-manager>
-      <configuration name="PythonConfigurationType">
-        <watch expression="err/n" language="Python" />
-      </configuration>
-    </watches-manager>
+  <component name="Vcs.Log.Tabs.Properties">
+    <option name="TAB_STATES">
+      <map>
+        <entry key="MAIN">
+          <value>
+            <State>
+              <option name="FILTERS">
+                <map>
+                  <entry key="branch">
+                    <value>
+                      <list>
+                        <option value="py2.7" />
+                      </list>
+                    </value>
+                  </entry>
+                </map>
+              </option>
+            </State>
+          </value>
+        </entry>
+      </map>
+    </option>
+  </component>
+  <component name="VcsManagerConfiguration">
+    <MESSAGE value="Python 2 complay changes" />
+    <option name="LAST_COMMIT_MESSAGE" value="Python 2 complay changes" />
+  </component>
+  <component name="com.intellij.coverage.CoverageDataManagerImpl">
+    <SUITE FILE_PATH="coverage/HisRepItself$MixAttention.coverage" NAME="MixAttention Coverage Results" MODIFIED="1621469617365" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/model" />
+    <SUITE FILE_PATH="coverage/HisRepItself$mediapipe.coverage" NAME="mediapipe Coverage Results" MODIFIED="1643819069605" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
+    <SUITE FILE_PATH="coverage/HisRepItself$main_iri_handover_gan.coverage" NAME="main_iri_handover_gan Coverage Results" MODIFIED="1642067746616" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
+    <SUITE FILE_PATH="coverage/HisRepItself$main_iri_handover.coverage" NAME="main_iri_handover Coverage Results" MODIFIED="1644860572733" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
+    <SUITE FILE_PATH="coverage/HisRepItself$main_iri_handover_no_phase.coverage" NAME="main_iri_handover_no_phase Coverage Results" MODIFIED="1638991398507" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
+    <SUITE FILE_PATH="coverage/HisRepItself$AttModel.coverage" NAME="AttModel Coverage Results" MODIFIED="1623850094526" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/model" />
+    <SUITE FILE_PATH="coverage/HisRepItself$Graph_NN.coverage" NAME="Graph NN Coverage Results" MODIFIED="1639565705441" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/model" />
   </component>
 </project>

@@ -5,7 +5,7 @@ from six.moves import xrange  # pylint: disable=redefined-builtin
 import torch
 # from torch.autograd.variable import Variable
 import os
-from utils import forward_kinematics
+# from utils import forward_kinematics
 
 
 def rotmat2euler(R):
@@ -208,7 +208,16 @@ def readCSVasFloat(filename):
     lines = open(filename).readlines()
     for line in lines:
         line = line.strip().split(',')
+        #upper_body = line[:100]
+        #print(upper_body)
+        #end_effector = line[-3:]
+        #print(end_effector)
+        #line = upper_body + end_effector
+        #print(line)
         if len(line) > 0:
+            floatline = np.array([np.float32(x) for x in line])
+            #print(floatline.shape)
+            #returnArray = np.concatenate((returnArray, floatline))
             returnArray.append(np.array([np.float32(x) for x in line]))
 
     returnArray = np.array(returnArray)
@@ -611,8 +620,10 @@ def find_indices_256(frame_num1, frame_num2, seq_len, input_n=10):
     SEED = 1234567890
     rng = np.random.RandomState(SEED)
 
-    T1 = frame_num1 - 150
-    T2 = frame_num2 - 150  # seq_len
+    #T1 = frame_num1 - 150
+    #T2 = frame_num2 - 150  # seq_len
+    T1 = frame_num1 - 20
+    T2 = frame_num2 - 20  # seq_len
     idxo1 = None
     idxo2 = None
     for _ in np.arange(0, 128):
@@ -661,3 +672,84 @@ def find_indices_srnn(frame_num1, frame_num2, seq_len, input_n=10):
             idxo1 = np.vstack((idxo1, idxs1))
             idxo2 = np.vstack((idxo2, idxs2))
     return idxo1, idxo2
+
+def iri_bone_length(pose):
+    assert len(pose) == 33
+    pose = pose.reshape(-1, 3)
+    bonelength = [np.linalg.norm(pose[0] - pose[1]),
+                  np.linalg.norm(pose[2] - pose[1]),
+                  np.linalg.norm(pose[3] - pose[2]),
+                  np.linalg.norm(pose[4] - pose[3]),
+                  np.linalg.norm(pose[5] - pose[1]),
+                  np.linalg.norm(pose[6] - pose[5]),
+                  np.linalg.norm(pose[7] - pose[6]),
+                  np.linalg.norm(pose[8] - pose[1]),
+                  np.linalg.norm(pose[9] - pose[8]),
+                  np.linalg.norm(pose[10] - pose[8])]
+
+    return bonelength
+
+def iri_discretize_pose(seq, n_bins=100):
+    first_frame = seq[:, 0]
+
+    seq_tmp_1 = seq.clone()[:, :-1, :]
+    seq_tmp_2 = seq.clone()[:, 1:, :]
+
+    seq_tmp = seq_tmp_2 - seq_tmp_1
+
+    seq_tmp = (seq_tmp * 100).round() #/ (n_bins/2))
+
+    seq_tmp[seq_tmp > n_bins/2] = n_bins/2
+    seq_tmp[seq_tmp < -n_bins/2] = -n_bins/2
+
+
+    i_seq_tmp = (seq_tmp.int() + n_bins/2).long()
+
+    #seq_one_hot[:, :, :, i_seq_tmp] = 1
+
+    #seq_one_hot = torch.nn.functional.one_hot(i_seq_tmp, n_bins+1).float()
+
+    return i_seq_tmp.float(), first_frame
+
+
+def iri_undiscretize_pose(seq_indices, first_frame, n_bins):
+    #seq_indices = torch.argmax(onehot_seq, dim=3)
+    seq_tmp = seq_indices.clone()
+    seq_tmp = seq_tmp - n_bins/2
+    seq_tmp = seq_tmp/100
+
+    seq = torch.zeros((seq_tmp.shape[0], seq_tmp.shape[1] + 1, seq_tmp.shape[2]))
+    seq = seq.cuda()
+    seq[:, 0] = first_frame
+
+    for frame in range(seq_tmp.shape[1]):
+        seq[:, frame + 1] = seq[:, frame] + seq_tmp[:, frame]
+
+    last_frame = seq[:, -1]
+
+    return seq, last_frame
+
+def iri_undiscretize_pose_prob(seq_indices, first_frame, n_bins):
+    seq_tmp = seq_indices.clone()
+
+
+    seq_poses = torch.zeros(seq_tmp.shape[0], seq_tmp.shape[1] + 1, seq_tmp.shape[2], seq_tmp.shape[3])
+    seq_poses = seq_poses.cuda()
+    seq_deltas = torch.zeros(seq_tmp.shape[0], seq_tmp.shape[1] + 1, seq_tmp.shape[2], seq_tmp.shape[3])
+    seq_deltas = seq_deltas.cuda()
+    poses_prob = seq_tmp
+    poses_prob = poses_prob.cuda()
+
+    for bin in range(seq_deltas.shape[-1]):
+        seq_deltas[:, :, :, bin] = bin
+
+    seq_deltas = seq_deltas - n_bins / 2
+    seq_deltas = seq_deltas / 100
+
+    seq_poses[:, 0, :] += torch.unsqueeze(first_frame, -1)
+
+    for frame in range(seq_tmp.shape[1]):
+        seq_poses[:, frame + 1] = seq_poses[:, frame] + seq_deltas[:, frame]
+
+    return seq_poses, poses_prob
+
