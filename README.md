@@ -1,4 +1,4 @@
-## History Repeats Itself: Human Motion Prediction via Motion Attention
+## Human motion prediction
 This is the code for the human skeleton tracker.
 
 ### Installation
@@ -17,9 +17,6 @@ pip install grpcio==1.20.1
 
 ### Get the data
 You can request access to the dataset [here](https://drive.google.com/file/d/1kXTmMPh2anxYkT7C5Fla6Z1YOhLL9_dM/view?usp=sharing).
-
-
-
 
 Directory structure: 
 ```shell script
@@ -71,6 +68,7 @@ python main_iri_handover_3d.py --kernel_size 10 --dct_n 20 --input_n 50 --output
 ```
 
 ### Acknowledgments
+This code is a variation of the work done by Wei Mao, Miaomiao Liu, Mathieu Salzmann.Wei Mao, Miaomiao Liu, Mathieu Salzmann in the paper [History Repeats Itself: Human Motion Prediction via Motion Attention] (https://arxiv.org/abs/2007.11755) presented in ECCV 2020.
 The overall code framework (dataloading, training, testing etc.) is adapted from [3d-pose-baseline](https://github.com/una-dinosauria/3d-pose-baseline). 
 
 The predictor model code is adapted from [LTD](https://github.com/wei-mao-2019/LearnTrajDep).
@@ -79,4 +77,3 @@ Some of our evaluation code and data process code was adapted/ported from [Resid
 
 ### Licence
 MIT
-# motion_predictor
