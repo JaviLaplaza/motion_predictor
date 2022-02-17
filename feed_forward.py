@@ -39,11 +39,38 @@ class Infer():
         ckpt = torch.load(model_path_len)
         self.net_pred.load_state_dict(ckpt['state_dict'])
 
+        self._dimensions_to_use = [0, 1, 2, #nose (0, 1, 2)
+                                   #4, 5, 6,       #left_eye_inner
+                                   #8, 9, 10,      #left_eye
+                                   #12, 13, 14,    #left_eye_outer
+                                   #16, 17, 18,    #right_eye_inner
+                                   #20, 21, 22,    #right_eye
+                                   #24, 25, 26,    #right_eye_outer
+                                   #28, 29, 30,    #left_ear
+                                   #32, 33, 34,    #right_ear
+                                   #36, 37, 38,    #mouth_left
+                                   #40, 41, 42,    #mouth_right
+                                   44, 45, 46,    #left_shoulder (3, 4, 5)
+                                   48, 49, 50,    #right_shoulder (6, 7, 8)
+                                   52, 53, 54,    #left_elbow (9, 10, 11)
+                                   56, 57, 58,    #right_elbow (12, 13, 14)
+                                   60, 61, 62,    #left_wrist (15, 16, 17)
+                                   64, 65, 66,    #right_wrist (18, 19, 20)
+                                   #68, 69, 70,    #left_pinky
+                                   #72, 73, 74,    #right_pinky
+                                   #76, 77, 78,    #left_index
+                                   #80, 81, 82,    #right_index
+                                   #84, 85, 86,    #left_thumb
+                                   #88, 89, 90,    #right_thumb
+                                   92, 93, 94,  #left_hip (21, 22, 23)
+                                   96, 97, 98]  #right_hip (24, 25, 26)
+
     def forward(self, sequence):
+        upper_body_sequence = sequence[self._dimensions_to_use]
 
 
         # Generator forward
-        xyz_out_all, phase_pred, intention_pred = self.net_pred(sequence, output_n=self.output_n, itera=1, input_n=self.input_n)  # [batch_size, out_n+kernel, 1, dim_used]
+        xyz_out_all, phase_pred, intention_pred = self.net_pred(upper_body_sequence, output_n=self.output_n, itera=1, input_n=self.input_n)  # [batch_size, out_n+kernel, 1, dim_used]
 
         xyz_out_all = xyz_out_all[:, :, 0]
 
