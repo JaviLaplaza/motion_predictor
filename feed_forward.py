@@ -66,7 +66,10 @@ class Infer():
                                    96, 97, 98]  #right_hip (24, 25, 26)
 
     def forward(self, sequence):
-        upper_body_sequence = sequence[self._dimensions_to_use]
+        upper_body_sequence = sequence[:, self._dimensions_to_use]
+        upper_body_sequence = torch.from_numpy(upper_body_sequence)
+        upper_body_sequence = torch.unsqueeze(upper_body_sequence, dim=0)
+        upper_body_sequence = torch.permute(upper_body_sequence, (0, 2, 1))
 
 
         # Generator forward
