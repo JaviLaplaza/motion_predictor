@@ -14,7 +14,7 @@ class MultiHeadAttModel(Module):
         self.linear = nn.Linear(num_heads * 20, 20)
 
     def forward(self, src, output_n=25, input_n=50, itera=1, dct_m=[]):
-        return self.linear(torch.cat([h(src, output_n, input_n, itera, dct_m) for h in self.heads], dim=-1))
+        return self.linear(torch.cat([h(src, output_n, input_n, itera, dct_m).float() for h in self.heads], dim=-1))
 
 
 class AttHeadModel(Module):
@@ -69,7 +69,6 @@ class AttHeadModel(Module):
         """
         dct_n = self.dct_n
 
-
         if dct_m == []:
             # Create DCT matrix and its inverse
             dct_m, idct_m = util.get_dct_matrix(self.kernel_size + output_n)
@@ -81,9 +80,10 @@ class AttHeadModel(Module):
                 idct_m = idct_m.cuda()
 
         # Take only the input seq
-        src = src[:, :input_n]  # [bs,in_n,dim]
+        src = src[:, :, :input_n]  # [bs,in_n,dim]
         src_tmp = src.clone()
         bs = src.shape[0]
+        
 
         full_body = torch.unsqueeze(src_tmp, 0)
 
@@ -112,13 +112,14 @@ class AttHeadModel(Module):
 
 
         full_body_dct = torch.Tensor().cuda()
+
         for i, part in enumerate(full_body):
             src_tmp = part
 
-
             # Temporal variables for keys and query
-            src_key_tmp = src_tmp.transpose(1, 2)[:, :, :(input_n - output_n)].clone()  # [batch, dims, input_n-output_n]
-            src_query_tmp = src_tmp.transpose(1, 2)[:, :, -self.kernel_size:].clone() # [batch, dims, kernel, bins]
+            src_key_tmp = src_tmp[:, :, :(input_n - output_n)].clone().float()  # [batch, dims, input_n-output_n]
+            src_query_tmp = src_tmp[:, :, -self.kernel_size:].clone().float() # [batch, dims, kernel, bins]
+            
 
             # Compute number of subsequences
             vn = input_n - self.kernel_size - output_n + 1
@@ -130,18 +131,19 @@ class AttHeadModel(Module):
                   np.expand_dims(np.arange(vn), axis=1)
 
             # Get raw poses corresponding to the Value of each subsequence
-            src_value_tmp = src_tmp[:, idx].clone().reshape([bs * vn, vl, -1])
+            src_value_tmp = src_tmp[:, :, idx].clone().reshape([bs * vn, vl, -1])
+            
 
             # Obtain the DCT corresponding to the Value raw poses
-            src_value_tmp = torch.matmul(dct_m[:dct_n].unsqueeze(dim=0), src_value_tmp).\
+            src_value_tmp = torch.matmul(dct_m[:dct_n].unsqueeze(dim=0).double(), src_value_tmp.double()).\
                 reshape([bs, vn, dct_n, -1]).\
                 transpose(2, 3).\
                 reshape([bs, vn, -1])  # [32,40,66*11]
-
+                
             # Obtain the K features
             key_tmp = self.convK[i](src_key_tmp / 1000.0)
-            #print(f'convK input shape: {src_key_tmp.shape}')
-            #print(f'convK output shape: {key_tmp.shape}')
+            # print(f'convK input shape: {src_key_tmp.shape}')
+            # print(f'convK output shape: {key_tmp.shape}')
 
             for j in range(itera):
                 # Obtain the Q features
@@ -150,16 +152,17 @@ class AttHeadModel(Module):
                 #print(f'convQ output shape: {query_tmp.shape}')
 
                 # Obtain the scores
-                score_tmp = torch.matmul(query_tmp.transpose(1, 2), key_tmp) + 1e-15
-
+                score_tmp = torch.matmul(query_tmp.transpose(1, 2).double(), key_tmp.double()) + 1e-15
                 # Normalize scores
                 att_tmp = score_tmp / (torch.sum(score_tmp, dim=2, keepdim=True))
 
                 # Obtain the attention results
-                dct_att_tmp = torch.matmul(att_tmp, src_value_tmp)[:, 0].reshape(
+                dct_att_tmp = torch.matmul(att_tmp.double(), src_value_tmp.double())[:, 0].reshape(
                     [bs, -1, dct_n])
+                    
 
-            full_body_dct = torch.cat((full_body_dct, dct_att_tmp), dim=1)
+                # print(full_body_dct.shape)
+            full_body_dct = torch.cat((full_body_dct, dct_att_tmp), dim=-1)
 
         #return dct_att_tmp
         return full_body_dct

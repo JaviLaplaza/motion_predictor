@@ -35,7 +35,7 @@ Put the all downloaded datasets in ./datasets directory or any other path. You c
 ### Pre-trained models:
 You can download the following models according to your needs and place it in the root folder:
 
-  1. input: 50, output: 25, heads: 4, goal_features: 3 -> [model](https://drive.google.com/file/d/1yuGNbGr86iCxNekqfTfmniX4onZSl2uq/view?usp=sharing)
+  1. input: 50, output: 25, heads: 4, goal_features: 3 -> [model](https://drive.google.com/file/d/1tz7Z99MTkS69mmPQFUezLc57rmDOP5j9/view?usp=sharinghttps://drive.google.com/file/d/1tz7Z99MTkS69mmPQFUezLc57rmDOP5j9/view?usp=sharing)
 
 ### Training
 All the running args are defined in [opt.py](utils/opt.py). We use following commands to train on different datasets and representations.

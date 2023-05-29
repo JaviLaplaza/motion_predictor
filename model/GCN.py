@@ -35,8 +35,8 @@ class GraphConvolution(nn.Module):
             self.bias.data.uniform_(-stdv, stdv)
 
     def forward(self, input):
-        support = torch.matmul(input, self.weight)
-        output = torch.matmul(self.att, support)
+        support = torch.matmul(input, self.weight.double())
+        output = torch.matmul(self.att.double(), support.double())
 
         if self.bias is not None:
             return output + self.bias
@@ -72,13 +72,13 @@ class GC_Block(nn.Module):
     def forward(self, x):
         y = self.gc1(x)
         b, n, f = y.shape
-        y = self.bn1(y.view(b, -1)).view(b, n, f)
+        y = self.bn1.double()(y.view(b, -1).double()).view(b, n, f)
         y = self.act_f(y)
         y = self.do(y)
 
         y = self.gc2(y)
         b, n, f = y.shape
-        y = self.bn2(y.view(b, -1)).view(b, n, f)
+        y = self.bn2.double()(y.view(b, -1)).view(b, n, f)
         y = self.act_f(y)
         y = self.do(y)
 
@@ -106,7 +106,7 @@ class GCN(nn.Module):
         self.intention = intention
 
         self.gc1 = GraphConvolution(input_feature, hidden_feature, node_n=node_n)
-        self.bn1 = nn.BatchNorm1d(node_n * hidden_feature)
+        self.bn1 = nn.BatchNorm1d(node_n * hidden_feature).float()
 
         self.gcbs = []
         for i in range(num_stage):
@@ -158,34 +158,36 @@ class GCN(nn.Module):
         #self.act_f = nn.ReLU()
 
     def forward(self, x):
+        x = x.double()
         y = self.gc1(x)
         b, n, f = y.shape
-        y = self.bn1(y.view(b, -1)).view(b, n, f)
+        y = self.bn1.double()(y.view(b, -1)).view(b, n, f)
         y = self.act_f(y)
         y = self.do(y)
 
         for i in range(self.num_stage):
             y = self.gcbs[i](y)
-
-        y = self.gc7(y)
+        y = self.gc7.double()(y.double()).float()
 
         phase = []
-        if self.phase:
-            phase = torch.unsqueeze(y[:, :, -2], dim=1)
-            phase = self.f_phase(phase)
-
+        # if self.phase:
+        #     print("no")
+        #     phase = torch.unsqueeze(y[:, :, -2], dim=1)
+        #     phase = self.f_phase(phase)
 
 
         intention = []
         if self.intention:
             intention = torch.unsqueeze(y[:, :, -1], dim=1)
             intention = self.f_intention(intention)
+            
+        phase = intention
 
 
         y = y[:, :, :self.input_feature] + x
 
-        #print(f'phase dimensions: {phase.shape}')
-        #print(f'intention dimensions: {intention.shape}')
+        # print(f'phase dimensions: {phase.shape}')
+        # print(f'intention dimensions: {intention.shape}')
 
         return y, phase, intention
 

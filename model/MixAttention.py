@@ -144,9 +144,7 @@ class MixAttention(Module):
     def forward(self, src, output_n=25, input_n=50, itera=1, goal=[], part_condition=False, obstacles=[],
                 phase=[], intention=[], phase_goal=torch.tensor([]), intention_goal=torch.tensor([]), z=torch.tensor([])):
         dct_n = self.dct_n
-
         src_tmp = src[:, :input_n].clone()
-
         # Create DCT matrix and its inverse
         dct_m, idct_m = util.get_dct_matrix(self.kernel_size + output_n)
         dct_m = torch.from_numpy(dct_m).float()
@@ -156,6 +154,7 @@ class MixAttention(Module):
             src = src.cuda()
             dct_m = dct_m.cuda()
             idct_m = idct_m.cuda()
+            
 
         idx = list(range(-self.kernel_size, 0, 1)) + [-1] * output_n
         outputs = []
@@ -164,6 +163,7 @@ class MixAttention(Module):
         dct_att_tmp = []
 
         inputs = [src]
+        
 
         if goal != []:
             if torch.cuda.is_available():
@@ -195,16 +195,18 @@ class MixAttention(Module):
             z = self.noise_embedding(z)
             #print(z.shape)
 
-
         # Generate internal variables U
         for source, module in zip(inputs, self.atnn):
             dct_source_tmp = module(source, output_n=self.output_n, input_n=self.input_n, itera=1, dct_m=dct_m)
+            
+            dct_source_tmp = dct_source_tmp.transpose(1, 2)
             dct_source_tmp = torch.unsqueeze(dct_source_tmp, dim=0)
             #print(dct_source_tmp.shape)
             dct_att_tmp.append(dct_source_tmp)
 
+
         # Set the temporal variable to input the GCN
-        input_gcn = src_tmp[:, idx]
+        input_gcn = src_tmp[:, :, idx]
 
         phase_pred = torch.empty((0, 0, 0))
 
@@ -213,6 +215,8 @@ class MixAttention(Module):
         if torch.cuda.is_available():
             phase_pred = phase_pred.cuda()
             intention_pred = intention_pred.cuda()
+            intention_goal = intention_goal.cuda()
+            input_gcn = input_gcn.cuda()
 
         if self.fusion_model == 0:
             dct_att_tmp = torch.squeeze(torch.cat(dct_att_tmp, dim=-1), dim=0)
@@ -250,7 +254,7 @@ class MixAttention(Module):
             dct_att_tmp = torch.cat(dct_att_tmp).permute(1, 2, 3, 0)
             dct_att_tmp = torch.sum(self._dct_att_tmp_weights * dct_att_tmp, dim=3)
 
-            dct_att_tmp += torch.unsqueeze(phase_goal, dim=1)
+            # dct_att_tmp += torch.unsqueeze(phase_goal, dim=1)
 
             dct_att_tmp += torch.unsqueeze(intention_goal, dim=1)
 
@@ -263,10 +267,10 @@ class MixAttention(Module):
 
 
             # Compute the DCT coeff for the GCN input seq
-            dct_in_tmp_ = torch.matmul(dct_m[:dct_n].unsqueeze(dim=0), input_gcn).transpose(1, 2)
+            dct_in_tmp_ = torch.matmul(dct_m[:dct_n].unsqueeze(dim=0).double(), input_gcn.transpose(1, 2).double())
 
             # Concatenate the DCT coeff and the att output
-            dct_in_tmp = torch.cat([dct_in_tmp_, dct_att_tmp], dim=-1)
+            dct_in_tmp = torch.cat([dct_in_tmp_.transpose(1, 2), dct_att_tmp.transpose(1, 2)], dim=-1)
             b, f, _ = dct_in_tmp.shape
 
             dct_out_tmp, phase_pred, intention_pred = self.gcn(dct_in_tmp) #!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! PHASE AND INTENTION  ADDED
@@ -282,8 +286,8 @@ class MixAttention(Module):
             #dct_att_tmp_weighted = torch.cat((dct_att_tmp_weighted, dct_att_tmp_weighted_), dim=-1)
 
             #dct_out_tmp = self.gcn(dct_att_tmp_weighted)
-            out_gcn = torch.matmul(idct_m[:, :dct_n].unsqueeze(dim=0),
-                                   dct_out_tmp[:, :, :dct_n].transpose(1, 2))
+            out_gcn = torch.matmul(idct_m[:, :dct_n].unsqueeze(dim=0).float(),
+                                   dct_out_tmp[:, :, :dct_n].transpose(1, 2).float())
 
             #print(f'dct_out_tmp dimensions: {dct_out_tmp[:, :, :dct_n].shape}')
             #print(f'idct_m dimensions: {idct_m[:, :dct_n].shape}')
