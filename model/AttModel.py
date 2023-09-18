@@ -80,6 +80,9 @@ class AttHeadModel(Module):
                 idct_m = idct_m.cuda()
 
         # Take only the input seq
+        
+        
+        # src = src.permute(0, 2, 1)
         src = src[:, :, :input_n]  # [bs,in_n,dim]
         src_tmp = src.clone()
         bs = src.shape[0]
@@ -112,9 +115,11 @@ class AttHeadModel(Module):
 
 
         full_body_dct = torch.Tensor().cuda()
+        
 
         for i, part in enumerate(full_body):
             src_tmp = part
+            # src_tmp = src_tmp.permute(0, 2, 1)
 
             # Temporal variables for keys and query
             src_key_tmp = src_tmp[:, :, :(input_n - output_n)].clone().float()  # [batch, dims, input_n-output_n]
@@ -129,16 +134,18 @@ class AttHeadModel(Module):
 
             idx = np.expand_dims(np.arange(vl), axis=0) + \
                   np.expand_dims(np.arange(vn), axis=1)
+                  
 
             # Get raw poses corresponding to the Value of each subsequence
-            src_value_tmp = src_tmp[:, :, idx].clone().reshape([bs * vn, vl, -1])
+            # src_value_tmp = src_tmp[:, :, idx].clone().reshape([bs * vn, vl, -1])
+            src_value_tmp = src_tmp[:, :, idx].clone().reshape([bs * vn, vl, -1]) # (bs * 16, 35, -1)
             
-
             # Obtain the DCT corresponding to the Value raw poses
             src_value_tmp = torch.matmul(dct_m[:dct_n].unsqueeze(dim=0).double(), src_value_tmp.double()).\
                 reshape([bs, vn, dct_n, -1]).\
                 transpose(2, 3).\
                 reshape([bs, vn, -1])  # [32,40,66*11]
+                
                 
             # Obtain the K features
             key_tmp = self.convK[i](src_key_tmp / 1000.0)
@@ -148,22 +155,28 @@ class AttHeadModel(Module):
             for j in range(itera):
                 # Obtain the Q features
                 query_tmp = self.convQ[i](src_query_tmp / 1000.0)
-                #print(f'convQ input shape: {src_query_tmp.shape}')
-                #print(f'convQ output shape: {query_tmp.shape}')
+                # print(f'convQ input shape: {src_query_tmp.shape}')
+                # print(f'convQ output shape: {query_tmp.shape}')
 
                 # Obtain the scores
                 score_tmp = torch.matmul(query_tmp.transpose(1, 2).double(), key_tmp.double()) + 1e-15
+                # print(score_tmp.shape)
                 # Normalize scores
                 att_tmp = score_tmp / (torch.sum(score_tmp, dim=2, keepdim=True))
+                # print(att_tmp.shape)
+                # print(src_value_tmp.shape)
 
                 # Obtain the attention results
                 dct_att_tmp = torch.matmul(att_tmp.double(), src_value_tmp.double())[:, 0].reshape(
                     [bs, -1, dct_n])
+                # print(f"dct_att_tmp.shape: {dct_att_tmp.shape}")
+                # print(f"full_body_dct.shape: {full_body_dct.shape}")
                     
 
                 # print(full_body_dct.shape)
             full_body_dct = torch.cat((full_body_dct, dct_att_tmp), dim=-1)
 
+        # print(full_body_dct.shape)
         #return dct_att_tmp
         return full_body_dct
 

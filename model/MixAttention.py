@@ -77,10 +77,10 @@ class MixAttention(Module):
                 n += 1
 
         self.intention_detector = []
-        if intention:
-            self.intention_detector = nn.Sequential(nn.Conv1d(in_channels=27, out_channels=48, kernel_size=1, padding=0),
+        if False:
+            self.intention_detector = nn.Sequential(nn.Conv1d(in_channels=38, out_channels=48, kernel_size=1, padding=0),
                                               nn.ReLU(),
-                                              nn.Conv1d(in_channels=48, out_channels=5, kernel_size=1, padding=0))
+                                              nn.Conv1d(in_channels=48, out_channels=3, kernel_size=1, padding=0))
 
             """
             self.intention_condition = nn.Sequential(nn.Linear(in_features=1, out_features=d_model),
@@ -91,7 +91,7 @@ class MixAttention(Module):
                                                  nn.BatchNorm1d(dct_n))
             """
 
-            self.intention_condition = nn.Sequential(nn.Linear(in_features=5, out_features=d_model),
+            self.intention_condition = nn.Sequential(nn.Linear(in_features=3, out_features=d_model),
                                                      nn.ReLU(),
                                                      nn.BatchNorm1d(d_model),
                                                      nn.Linear(in_features=d_model, out_features=dct_n),
@@ -103,7 +103,7 @@ class MixAttention(Module):
             if fusion_model == 0:
                 n += 1
 
-        noise = True
+        noise = False
         if noise:
             self.noise_embedding = nn.Sequential(nn.Linear(in_features=128, out_features=d_model),
                                                      nn.ReLU(),
@@ -126,8 +126,8 @@ class MixAttention(Module):
             #self.fusion_module = GCN.FusionGCN(input_feature=(dct_n) * n, hidden_feature=d_model, p_dropout=0.3,
             #                   node_n=in_features)
 
-            self.fusion_module = GCN.FusionGCN(input_feature=(dct_n) * 2, hidden_feature=d_model, p_dropout=0.3,
-                               node_n=in_features)
+            # self.fusion_module = GCN.FusionGCN(input_feature=(dct_n) * 2, hidden_feature=d_model, p_dropout=0.3,
+            #                    node_n=in_features)
 
         elif fusion_model == 2:
             self.gcn = GCN.GCN(output_n=output_n, input_feature=(dct_n) * n_, hidden_feature=d_model, p_dropout=0.3,
@@ -149,13 +149,13 @@ class MixAttention(Module):
         dct_m, idct_m = util.get_dct_matrix(self.kernel_size + output_n)
         dct_m = torch.from_numpy(dct_m).float()
         idct_m = torch.from_numpy(idct_m).float()
+        
 
         if torch.cuda.is_available():
             src = src.cuda()
             dct_m = dct_m.cuda()
             idct_m = idct_m.cuda()
             
-
         idx = list(range(-self.kernel_size, 0, 1)) + [-1] * output_n
         outputs = []
 
@@ -163,6 +163,7 @@ class MixAttention(Module):
         dct_att_tmp = []
 
         inputs = [src]
+        
         
 
         if goal != []:
@@ -203,10 +204,11 @@ class MixAttention(Module):
             dct_source_tmp = torch.unsqueeze(dct_source_tmp, dim=0)
             #print(dct_source_tmp.shape)
             dct_att_tmp.append(dct_source_tmp)
+            
 
 
         # Set the temporal variable to input the GCN
-        input_gcn = src_tmp[:, :, idx]
+        input_gcn = src_tmp[:, :, idx].permute(0, 2, 1)
 
         phase_pred = torch.empty((0, 0, 0))
 
@@ -222,7 +224,7 @@ class MixAttention(Module):
             dct_att_tmp = torch.squeeze(torch.cat(dct_att_tmp, dim=-1), dim=0)
 
             # Compute the DCT coeff for the GCN input seq
-            dct_in_tmp = torch.matmul(dct_m[:dct_n].unsqueeze(dim=0), input_gcn).transpose(1, 2)
+            dct_in_tmp = torch.matmul(dct_m[:dct_n].unsqueeze(dim=0), input_gcn)
 
             #print(f"dct_in_tmp dimensions: {dct_in_tmp.shape}")
             #print(f"dct_att_tmp dimensions: {dct_att_tmp.shape}")
@@ -256,7 +258,7 @@ class MixAttention(Module):
 
             # dct_att_tmp += torch.unsqueeze(phase_goal, dim=1)
 
-            dct_att_tmp += torch.unsqueeze(intention_goal, dim=1)
+            # dct_att_tmp += torch.unsqueeze(intention_goal, dim=1)
 
             #dct_att_tmp += torch.unsqueeze(z, dim=1)
 
@@ -267,13 +269,17 @@ class MixAttention(Module):
 
 
             # Compute the DCT coeff for the GCN input seq
-            dct_in_tmp_ = torch.matmul(dct_m[:dct_n].unsqueeze(dim=0).double(), input_gcn.transpose(1, 2).double())
+            # dct_in_tmp_ = torch.matmul(dct_m[:dct_n].unsqueeze(dim=0).double(), input_gcn.transpose(1, 2).double())
+            dct_in_tmp_ = torch.matmul(dct_m[:dct_n].unsqueeze(dim=0).double(), input_gcn.double())
 
             # Concatenate the DCT coeff and the att output
-            dct_in_tmp = torch.cat([dct_in_tmp_.transpose(1, 2), dct_att_tmp.transpose(1, 2)], dim=-1)
+            # dct_in_tmp = torch.cat([dct_in_tmp_.transpose(1, 2), dct_att_tmp.transpose(1, 2)], dim=-1)
+            dct_in_tmp = torch.cat([dct_in_tmp_, dct_att_tmp], dim=1).permute(0, 2, 1)
             b, f, _ = dct_in_tmp.shape
+            
 
             dct_out_tmp, phase_pred, intention_pred = self.gcn(dct_in_tmp) #!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! PHASE AND INTENTION  ADDED
+            
 
             #dct_att_tmp_weighted = torch.zeros(b, f, dct_n * 2)
             ##dct_att_tmp_weighted = dct_in_tmp_
@@ -308,7 +314,7 @@ class MixAttention(Module):
             #if self.intention_detector != []:
             #    intention_pred = self.intention_detector(outputs)
 
-            outputs = outputs.permute((0, 2, 1))
+            # outputs = outputs.permute((0, 2, 1))
             outputs = torch.unsqueeze(outputs, dim=2)
 
 

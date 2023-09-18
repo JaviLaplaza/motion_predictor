@@ -91,7 +91,7 @@ class GC_Block(nn.Module):
 
 
 class GCN(nn.Module):
-    def __init__(self, input_feature, hidden_feature, p_dropout, input_n=50, output_n=25, kernel_n=10, num_stage=1, node_n=48, phase=True, intention=True):
+    def __init__(self, input_feature, hidden_feature, p_dropout, input_n=50, output_n=25, kernel_n=10, num_stage=1, node_n=48, phase=False, intention=True):
         """
         :param input_feature: num of input feature
         :param hidden_feature: num of hidden feature
@@ -104,6 +104,8 @@ class GCN(nn.Module):
         self.input_feature = input_feature
         self.phase = phase
         self.intention = intention
+        
+        
 
         self.gc1 = GraphConvolution(input_feature, hidden_feature, node_n=node_n)
         self.bn1 = nn.BatchNorm1d(node_n * hidden_feature).float()
@@ -115,6 +117,7 @@ class GCN(nn.Module):
         self.gcbs = nn.ModuleList(self.gcbs)
 
         if phase:
+            print("phase")
             input_feature += 1
             if output_n % 10 == 0:
                 k = 4
@@ -137,7 +140,7 @@ class GCN(nn.Module):
             if output_n % 10 == 0:
                 k = 4
             else:
-                k = 3
+                k = 7
             Lin = node_n
             Lout = output_n + kernel_n
             s = 1
@@ -147,7 +150,7 @@ class GCN(nn.Module):
             self.f_intention = nn.Sequential(
                 nn.Conv1d(in_channels=1, out_channels=hidden_feature, kernel_size=k, stride=s, padding=p, dilation=d),
                 nn.ReLU(),
-                nn.Conv1d(in_channels=hidden_feature, out_channels=5, kernel_size=1, stride=s, padding=0, dilation=d)
+                nn.Conv1d(in_channels=hidden_feature, out_channels=3, kernel_size=1, stride=s, padding=0, dilation=d)
             )
 
 
@@ -158,6 +161,7 @@ class GCN(nn.Module):
         #self.act_f = nn.ReLU()
 
     def forward(self, x):
+        
         x = x.double()
         y = self.gc1(x)
         b, n, f = y.shape
@@ -168,6 +172,7 @@ class GCN(nn.Module):
         for i in range(self.num_stage):
             y = self.gcbs[i](y)
         y = self.gc7.double()(y.double()).float()
+        
 
         phase = []
         # if self.phase:
@@ -181,7 +186,9 @@ class GCN(nn.Module):
             intention = torch.unsqueeze(y[:, :, -1], dim=1)
             intention = self.f_intention(intention)
             
+            
         phase = intention
+        
 
 
         y = y[:, :, :self.input_feature] + x

@@ -1,5 +1,6 @@
 from model import MixAttention
 import torch
+from collections import OrderedDict
 
 
 
@@ -24,6 +25,7 @@ class Infer():
         self.obstacles_condition = opt.obstacles_condition
         self.fusion_model = opt.fusion_model
         self.device = opt.device
+        
 
         self.net_pred = MixAttention.MixAttention(output_n=self.output_n, in_features=self.in_features, kernel_size=self.kernel_size,
                                              d_model=self.d_model, num_stage=opt.num_stage, dct_n=opt.dct_n, num_heads=self.num_heads,
@@ -36,11 +38,27 @@ class Infer():
         print(">>> total params: {:.2f}M".format(sum(p.numel() for p in self.net_pred.parameters()) / 1000000.0))
 
         # Load weights
-        #model_path_len = './ckpt_best.pth.tar'
+        # model_path_len = '/home/canopies/iri-lab/motion_prediction_ws/src/human_detection/iri_motion_prediction/weights/ckpt_best.pth'
         model_path_len = opt.weights_file
+        
         print(">>> loading ckpt len from '{}'".format(model_path_len))
         ckpt = torch.load(model_path_len)
+        
+        # ckpt_ = OrderedDict((k[7:], v) for k, v in ckpt.items())
+        
+        # ckpt = ckpt_
         self.net_pred.load_state_dict(ckpt['state_dict'])
+        
+        # try:    
+        #     ckpt_ = OrderedDict((k[7:], v) for k, v in ckpt.items())
+        
+        #     ckpt = ckpt_
+        
+        #     self.net_pred.load_state_dict(ckpt)
+            
+        # except:
+        #     pass
+        
 
         self._dimensions_to_use = [0, 1, 2, #nose (0, 1, 2)
                                    #4, 5, 6,       #left_eye_inner
@@ -65,8 +83,13 @@ class Infer():
                                    #80, 81, 82,    #right_index
                                    #84, 85, 86,    #left_thumb
                                    #88, 89, 90,    #right_thumb
-                                   92, 93, 94,  #left_hip (21, 22, 23)
-                                   96, 97, 98]  #right_hip (24, 25, 26)
+                                   92, 93, 94,     #left_hip (21, 22, 23)
+                                   96, 97, 98,     #right_hip (24, 25, 26)
+                                   100, 101, 102,  #left_knee (27, 28, 29)
+                                   104, 105, 106,  #right_knee (30, 31, 32)
+                                   108, 109, 110,  #left_foot (33, 34, 35)
+                                   112, 113, 114]  #right_foot (36, 37, 38)
+                                     
 
     def forward(self, sequence):
         upper_body_sequence = sequence[:, self._dimensions_to_use]
@@ -77,13 +100,13 @@ class Infer():
         # Generator forward
         xyz_out_all, phase_pred, intention_pred = self.net_pred(upper_body_sequence, output_n=self.output_n, itera=1, input_n=self.input_n, intention_goal=torch.tensor([0]))  # [batch_size, out_n+kernel, 1, dim_used]
         
+
+        xyz_out_all = xyz_out_all[:, :, 0] # .permute(0, 2, 1)
+
+        xyz_out = xyz_out_all[:, :, self.kernel_size:] # dims (1, out_n, features)
+        phase_pred = phase_pred[:, :, self.kernel_size:]# .permute((0, 2, 1)) # dims (1, classes, out_n)
+        intention_pred = intention_pred[:, :, self.kernel_size:]# .permute((0, 2, 1)) # dims (1, classes, out_n)
         
-
-        xyz_out_all = xyz_out_all[:, :, 0]
-
-        xyz_out = xyz_out_all[:, self.kernel_size:]
-        phase_pred = phase_pred[:, :, self.kernel_size:]#.permute((0, 2, 1))
-        intention_pred = intention_pred[:, :, self.kernel_size:]
         
 
         return xyz_out, phase_pred, intention_pred

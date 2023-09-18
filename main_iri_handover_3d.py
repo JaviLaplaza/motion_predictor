@@ -1,11 +1,12 @@
 #from utils import iri_handover_3d as datasets
-from utils import mediapipe_handover_3d as datasets
+# from utils import mediapipe_handover_3d as datasets
+from utils import canopies as datasets
 from model import MixAttention
 from utils.opt import Options
 from utils import util
 from utils import log
 from utils import plots
-from utils.sampler import Sampler
+# from utils.sampler import Sampler
 from torch.utils.data import WeightedRandomSampler
 from torch.nn.functional import one_hot
 
@@ -51,6 +52,7 @@ def main(opt):
 
     # create tensorboardX visualizer
     writer = SummaryWriter(opt.ckpt)
+    
 
     net_pred = MixAttention.MixAttention(output_n=output_n, in_features=in_features, kernel_size=kernel_size, d_model=d_model,
                                           num_stage=opt.num_stage, dct_n=opt.dct_n, num_heads=num_heads,
@@ -90,30 +92,15 @@ def main(opt):
         dataset = datasets.Datasets(opt, split=0)
         print('>>> Training dataset length: {:d}'.format(dataset.__len__()))
         # sampler = Sampler(dataset.intention_classes(), class_per_batch=4, batch_size=32)
-        weights = torch.empty(len(dataset))
-        for i, sample in enumerate(dataset):
-            if sample['intention_goal'] == 0:
-                weights[i] = 1 / (862./1033)
 
-            elif sample['intention_goal'] == 1:
-                weights[i] = 1 / (38./1033)
 
-            elif sample['intention_goal'] == 2:
-                weights[i] = 1 / (113./1033)
-
-            elif sample['intention_goal'] == 3:
-                weights[i] = 1 / (20./1033)
-
-            elif sample['intention_goal'] == 4:
-                weights[i] = 1 / (20./1033)
-
-        sampler = WeightedRandomSampler(weights=weights, num_samples=20, replacement=False)
-        # data_loader = DataLoader(dataset, batch_size=opt.batch_size, shuffle=True, num_workers=0, pin_memory=True)
+        # sampler = WeightedRandomSampler(weights=weights, num_samples=20, replacement=False)
+        data_loader = DataLoader(dataset, batch_size=opt.batch_size, shuffle=True, num_workers=0, pin_memory=True)
         # data_loader = DataLoader(dataset, num_workers=0, pin_memory=True, batch_sampler=sampler)
-        data_loader = DataLoader(dataset, num_workers=4, pin_memory=True, sampler=sampler, batch_size=opt.batch_size)
+        # data_loader = DataLoader(dataset, num_workers=4, pin_memory=True, sampler=sampler, batch_size=opt.batch_size)
         valid_dataset = datasets.Datasets(opt, split=1)
         print('>>> Validation dataset length: {:d}'.format(valid_dataset.__len__()))
-        valid_sampler = Sampler(valid_dataset.intention_classes(), class_per_batch=5, batch_size=4)
+        # valid_sampler = Sampler(valid_dataset.intention_classes(), class_per_batch=5, batch_size=4)
         valid_loader = DataLoader(valid_dataset, batch_size=opt.test_batch_size, shuffle=True, num_workers=0, pin_memory=True)
         # valid_loader = DataLoader(valid_dataset, num_workers=0, pin_memory=True, batch_sampler=valid_sampler)
 
@@ -212,7 +199,7 @@ def run_model(net_pred, optimizer=None, is_train=0, data_loader=None, epo=1, opt
     out_n = opt.output_n
     goal_features = opt.goal_features
 
-    phase_loss = nn.BCELoss()
+    # phase_loss = nn.BCELoss()
     intention_loss = nn.CrossEntropyLoss()
     #intention_loss = nn.CrossEntropyLoss(weight=torch.tensor([15614, 1399, 1088, 224]).to(device).float())
     #intention_loss = nn.CrossEntropyLoss(weight=torch.tensor([1/15614, 1/1399, 1/1088, 1/224]).to(device).float())
@@ -251,38 +238,16 @@ def run_model(net_pred, optimizer=None, is_train=0, data_loader=None, epo=1, opt
     for i, batch in enumerate(data_loader):
         xyz_iri = batch['xyz'].to(device)
         # print(f'xyz_iri.shape: {xyz_iri.shape}')
-        xyz_end_effector = batch['end_effector'].to(device)
-        obstacles = batch['obstacles'].to(device)
-        obstacles_ = obstacles
-        obstacles = obstacles.view(-1, in_n+out_n, 9).float()
         # obstacles = torch.unsqueeze(obstacles, dim=1)
         # obstacles = obstacles.repeat(1, in_n+out_n, 1)
         # obstacles = torch.unsqueeze(obstacles, dim=1).float()
         # xyz_iri = xyz_iri[:, :, dim_used]
 
-        phase = batch['phase'].to(device)
-        phase_goal = batch['phase_goal'].to(device)
-        # print(f'phase.shape: {phase.shape}')
-
         intention = batch['intention'].to(device)
-        intention_goal = batch['intention_goal'].long().to(device)
-
-        intention_goal = torch.zeros_like(intention_goal) + 4
-
-        one_hot_format = True
-        if one_hot_format:
-            intention_goal = torch.squeeze(one_hot(intention_goal, num_classes=5).float(), dim=1)
 
         xyz_goal =[]
 
-        if goal_features > 0:
-            xyz_goal = xyz_end_effector
-            """
-            xyz_goal = torch.unsqueeze(xyz_end_effector, -1)
-            xyz_iri_ = xyz_iri.view(xyz_iri.shape[0], -1, 3, 11)
-            xyz_goal = xyz_iri_ - xyz_goal
-            xyz_goal = xyz_goal.view(xyz_iri.shape[0],  -1, 33)
-            """
+
 
         batch_size, seq_n, _ = xyz_iri.shape
 
@@ -297,18 +262,17 @@ def run_model(net_pred, optimizer=None, is_train=0, data_loader=None, epo=1, opt
         xyz_sup = xyz_iri.clone()[:, -out_n - seq_in:]        # [batch_size, out_n+kernel, dim_used]
         xyz_src = xyz_iri.clone()                             # [batch_size, seq_len-1, dim_used]
 
-        phase_sup = phase.clone()[:, -out_n - seq_in:]
         intention_sup = intention.clone()[:, -out_n - seq_in:]
 
         xyz_target = xyz_sup[:, seq_in:]
 
-        phase_target = phase_sup.clone()[:, seq_in:]
         #phase_goal = torch.mode(phase_target, dim=1)[0]
         #print(f'phase_goal dimensions: {phase_goal}')
 
 
         intention_target = intention_sup.clone()[:, seq_in:]
         intention_target = torch.squeeze(intention_target, dim=2)
+        
 
         #intention_goal = torch.unsqueeze(torch.mode(intention_target, dim=1)[0], dim=1)
         #print(f'intention_goal dimensions: {intention_goal}')
@@ -322,23 +286,23 @@ def run_model(net_pred, optimizer=None, is_train=0, data_loader=None, epo=1, opt
         xyz_src.requires_grad = True
 
         # Generator forward
-        xyz_out_all, phase_pred, intention_pred = net_pred(xyz_src, output_n=out_n, itera=itera, input_n=in_n, goal=xyz_goal,
-                               part_condition=obstacle_condition, obstacles=obstacles, phase=phase, intention=intention,
-                               phase_goal=phase_goal, intention_goal=intention_goal) # [batch_size, out_n+kernel, 1, dim_used]
+        xyz_out_all, phase_pred, intention_pred = net_pred(xyz_src, output_n=out_n, itera=itera, input_n=in_n, intention=intention) # [batch_size, out_n+kernel, 1, dim_used]
+        
 
         xyz_out_all = xyz_out_all[:, :, 0]
+        xyz_out_all = xyz_out_all.permute(0, 2, 1)
 
         xyz_out = xyz_out_all[:, seq_in:]
-        phase_pred = phase_pred[:, :, seq_in:].permute((0, 2, 1))
+        
         intention_pred = intention_pred[:, :, seq_in:]
         # print(xyz_out.shape)
 
         # 2d joint loss:
         grad_norm = 0
         if is_train == 0:
-            loss_x = torch.mean(torch.sum(torch.abs(xyz_out - xyz_target)[:, :, [0, 3, 6, 9, 12, 15, 18, 21, 24]], dim=2))
-            loss_y = torch.mean(torch.sum(torch.abs(xyz_out - xyz_target)[:, :, [1, 4, 7, 10, 13, 16, 19, 22, 25]], dim=2))
-            loss_z = torch.mean(torch.sum(torch.abs(xyz_out - xyz_target)[:, :, [2, 5, 8, 11, 14, 17, 20, 23, 26]], dim=2))
+            loss_x = torch.mean(torch.sum(torch.abs(xyz_out - xyz_target)[:, :, [0, 3, 6, 9, 12, 15, 18, 21, 24, 27, 30, 33, 36]], dim=2))
+            loss_y = torch.mean(torch.sum(torch.abs(xyz_out - xyz_target)[:, :, [1, 4, 7, 10, 13, 16, 19, 22, 25, 28, 31, 34, 37]], dim=2))
+            loss_z = torch.mean(torch.sum(torch.abs(xyz_out - xyz_target)[:, :, [2, 5, 8, 11, 14, 17, 20, 23, 26, 29, 32, 35, 38]], dim=2))
 
             # loss_xyz = torch.mean(torch.sum(torch.abs(xyz_out - xyz_target), dim=2))
             wx = 1
@@ -349,36 +313,13 @@ def run_model(net_pred, optimizer=None, is_train=0, data_loader=None, epo=1, opt
 
             loss_xyz = wx * loss_x + wy * loss_y + wz * loss_z
 
-            # we = 50
-            we = 1
-
-            loss_end_effector = torch.mean(torch.sum(torch.abs(xyz_out - xyz_target)[:, :, [18, 19, 20]], dim=2))
-
-            wf = 5
-            loss_free_hand = torch.mean(torch.sum(torch.abs(xyz_out - xyz_target)[:, :, [15, 16, 17]], dim=2))
-
-            wo = 1
-            loss_obstacle = 0
-
-            for i in range(3):
-                intersection_left_hip = xyz_out[:, :, [21, 22, 23]] - obstacles_[:, -out_n:, :, i]
-                intersection_right_hip = xyz_out[:, :, [24, 24, 26]] - obstacles_[:, -out_n:, :, i]
-
-                if torch.any(torch.abs(intersection_left_hip[:, :, 0]) < 0.1):
-                    if torch.any(torch.abs(intersection_left_hip[:, :, 1]) < 0.1):
-                        loss_obstacle = 50
-
-                if torch.any(torch.abs(intersection_right_hip[:, :, 0]) < 0.1):
-                    if torch.any(torch.abs(intersection_right_hip[:, :, 1]) < 0.1):
-                        loss_obstacle = 50
-
-            wp = 1
-            loss_phase = phase_loss(phase_pred, phase_target)
-
             wi = 1
+
+            # print(intention_pred)
+            # print(intention_target)
             loss_intention = intention_loss(intention_pred, intention_target.long())
 
-            loss_all = loss_xyz + we * loss_end_effector + wf * loss_free_hand + wo * loss_obstacle + wp * loss_phase + wi * loss_intention
+            loss_all = loss_xyz + wi * loss_intention
             optimizer.zero_grad()
             loss_all.backward()
             grad_norm = nn.utils.clip_grad_norm_(list(net_pred.parameters()), max_norm=opt.max_norm)
@@ -400,21 +341,18 @@ def run_model(net_pred, optimizer=None, is_train=0, data_loader=None, epo=1, opt
                 # right_hand_error = torch.mean(torch.norm((xyz_out - xyz_gt)[:, :, [18, 19, 20]], dim=1))
                 right_hand_error = torch.mean(torch.norm((xyz_out - xyz_gt)[:, :, [18, 19, 20]], dim=2))
 
-                phase_pred_ = phase_pred
-                phase_pred_[phase_pred_ < 0.5] = 0
-                phase_pred_[phase_pred_ > 0.5] = 1
-                phase_acc = (phase_pred_ == phase_target).sum() / torch.numel(phase_pred_)
                 # print(phase_acc)
                 # print((phase_pred == phase_target).sum())
 
                 intention_pred_ = torch.argmax(intention_pred, dim=1)
 
                 intention_acc = (intention_pred_ == intention_target).sum() / torch.numel(intention_pred_)
+                print(intention_acc)
 
             m_xyz_seq += err_xyz_seq.cpu().data.numpy() * batch_size
             m_right_hand_error += right_hand_error.cpu().data.numpy() * batch_size
-            m_phase_acc += phase_acc.cpu().data.numpy() * batch_size
-            m_intention_acc += intention_acc.cpu().data.numpy() * batch_size
+            # m_phase_acc += phase_acc.cpu().data.numpy() * batch_size
+            # m_intention_acc += intention_acc.cpu().data.numpy() * batch_size
             # print(m_phase_acc)
 
         else:
@@ -440,10 +378,10 @@ def run_model(net_pred, optimizer=None, is_train=0, data_loader=None, epo=1, opt
                 right_hand_error = torch.sum(torch.norm((xyz_out - xyz_gt)[:, :, [18, 19, 20]], dim=2), dim=0)
 
                 #right_hand_error = torch.mean(torch.norm(xyz_out - xyz_gt, dim=1)[:, :, [18, 19, 20]])
-                phase_pred_ = phase_pred
-                phase_pred_[phase_pred_ < 0.5] = 0
-                phase_pred_[phase_pred_ > 0.5] = 1
-                phase_acc = (phase_pred_ == phase_target).sum() / torch.numel(phase_pred_)
+                # phase_pred_ = phase_pred
+                # phase_pred_[phase_pred_ < 0.5] = 0
+                # phase_pred_[phase_pred_ > 0.5] = 1
+                # phase_acc = (phase_pred_ == phase_target).sum() / torch.numel(phase_pred_)
                 # print(phase_acc)
                 # print((phase_pred == phase_target).sum())
 
@@ -453,7 +391,7 @@ def run_model(net_pred, optimizer=None, is_train=0, data_loader=None, epo=1, opt
 
             m_xyz_seq += err_xyz_seq.cpu().data.numpy()
             m_right_hand_error += right_hand_error.cpu().data.numpy()
-            m_phase_acc += phase_acc.cpu().data.numpy()
+            # m_phase_acc += phase_acc.cpu().data.numpy()
             m_intention_acc += intention_acc.cpu().data.numpy()
 
         if i % 1000 == 0:
@@ -467,13 +405,14 @@ def run_model(net_pred, optimizer=None, is_train=0, data_loader=None, epo=1, opt
     if is_train <= 1:
         ret["m_xyz_iri"] = m_xyz_seq / n
         ret["m_right_hand"] = m_right_hand_error / n
-        ret["m_phase_acc"] = m_phase_acc / n
+        # ret["m_phase_acc"] = m_phase_acc / n
         ret["m_intention_acc"] = m_intention_acc / n
+        print(m_intention_acc / n)
 
     else:
         m_xyz_iri = m_xyz_seq / n
         m_right_hand_iri = m_right_hand_error / n
-        m_phase_iri = m_phase_acc / n
+        # m_phase_iri = m_phase_acc / n
         m_intention_iri = m_intention_acc / n
 
         if opt.n_bins>0:
@@ -481,7 +420,7 @@ def run_model(net_pred, optimizer=None, is_train=0, data_loader=None, epo=1, opt
                 ret["#{:d}".format(titles[j])] = m_xyz_iri[j]
         else:
             for j in range(out_n):
-                ret["#{:d}".format(titles[j])] = m_xyz_iri[j], m_right_hand_iri[j], m_phase_iri[j], m_intention_iri[j]
+                ret["#{:d}".format(titles[j])] = m_xyz_iri[j], m_right_hand_iri[j], m_intention_iri[j]
                 # print(ret["#{:d}".format(titles[j])])
 
     show = True
@@ -507,9 +446,9 @@ def run_model(net_pred, optimizer=None, is_train=0, data_loader=None, epo=1, opt
         gt_seq = xyz_gt[batch].cpu()
         #plots.animate_iri_handover_sequence(gt_seq, end_effector=xyz_end_effector[batch, in_n:in_n+out_n+1], color='target', keep=True, show=show, hide_layout=True, save_figs=True, epoch=epo, train=is_train)
 
-        video_buf, fig, ax, frame = plots.animate_mediapipe_target_and_prediction(gt_seq, pred_seq,  end_effector=xyz_end_effector[batch, in_n:in_n+out_n+1].cpu().numpy(), obstacles=obstacles_[batch].cpu().numpy(), show=show,  hide_layout=False, epoch=epo, train=is_train)
-        video = torch.cat(video_buf).unsqueeze(0)
-        writer.add_video("prediction vs target", video, epo)
+        # video_buf, fig, ax, frame = plots.animate_mediapipe_target_and_prediction(gt_seq, pred_seq,  end_effector=xyz_end_effector[batch, in_n:in_n+out_n+1].cpu().numpy(), obstacles=obstacles_[batch].cpu().numpy(), show=show,  hide_layout=False, epoch=epo, train=is_train)
+        # video = torch.cat(video_buf).unsqueeze(0)
+        # writer.add_video("prediction vs target", video, epo)
 
     return ret
 
