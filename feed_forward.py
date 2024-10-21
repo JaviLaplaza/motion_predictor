@@ -1,4 +1,5 @@
 from model import MixAttention
+from collections import OrderedDict
 import torch
 
 
@@ -18,18 +19,19 @@ class Infer():
         self.d_model = opt.d_model
         self.kernel_size = opt.kernel_size
         self.num_heads = opt.num_heads
-        # goal_condition = opt.goal_condition
-        self.goal_features = -1
+        self.goal_condition = opt.goal_condition
         self.part_condition = opt.part_condition
         self.obstacles_condition = opt.obstacles_condition
         self.fusion_model = opt.fusion_model
         self.device = opt.device
 
-        self.net_pred = MixAttention.MixAttention(output_n=self.output_n, in_features=self.in_features, kernel_size=self.kernel_size,
+        self.net_pred = MixAttention.MixAttention(input_n=self.input_n, output_n=self.output_n, in_features=self.in_features, kernel_size=self.kernel_size,
                                              d_model=self.d_model, num_stage=opt.num_stage, dct_n=opt.dct_n, num_heads=self.num_heads,
-                                             goal_features=self.goal_features, part_condition=self.part_condition,
+                                             goal_condition=self.goal_condition,
                                              obstacle_condition=self.obstacles_condition, fusion_model=self.fusion_model,
-                                             phase=opt.phase, intention=opt.intention).to(self.device)
+                                             phase_condition=opt.phase_condition, intention_condition=opt.intention_condition, phase_prediction=opt.phase_prediction,
+                                             intention_prediction=opt.intention_prediction).to(self.device)
+        
                                              
         self.net_pred.eval()
 
@@ -37,10 +39,33 @@ class Infer():
 
         # Load weights
         #model_path_len = './ckpt_best.pth.tar'
-        model_path_len = opt.weights_file
+        # model_path_len = opt.weights_file
+        model_path_len = '/home/irilab/iri-lab/motion_prediction_ws/src/human_detection/iri_motion_prediction/weights/ckpt_best.pth.tar'
         print(">>> loading ckpt len from '{}'".format(model_path_len))
         ckpt = torch.load(model_path_len)
-        self.net_pred.load_state_dict(ckpt['state_dict'])
+        # self.net_pred.load_state_dict(ckpt['state_dict'])
+        # print(self.net_pred.state_dict().keys())
+        # print(ckpt.keys())
+        # matches = 0
+        # i = 0
+        # for model_name, model_param in self.net_pred.state_dict().items():
+        #     i += 1
+        #     for ckpt_name, ckpt_param in ckpt.items():
+        #         if model_name in ckpt_name:
+        #             model_param = ckpt_param
+
+        # self.net_pred.load_state_dict(torch.load(model_path_len), strict=False)
+        
+        new_state_dict = OrderedDict()
+        for k, v in ckpt.items():
+          name = k[7:]
+          new_state_dict[name] = v
+        self.net_pred.load_state_dict(new_state_dict, strict=False)
+                    
+        
+                    
+
+        # self.net_pred.load_state_dict(ckpt)
 
         self._dimensions_to_use = [0, 1, 2, #nose (0, 1, 2)
                                    #4, 5, 6,       #left_eye_inner
@@ -72,19 +97,19 @@ class Infer():
         upper_body_sequence = sequence[:, self._dimensions_to_use]
         upper_body_sequence = torch.from_numpy(upper_body_sequence)
         upper_body_sequence = torch.unsqueeze(upper_body_sequence, dim=0)
-        upper_body_sequence = torch.permute(upper_body_sequence, (0, 2, 1))
+        upper_body_sequence = upper_body_sequence.permute(0, 2, 1)
 
         # Generator forward
-        xyz_out_all, phase_pred, intention_pred = self.net_pred(upper_body_sequence, output_n=self.output_n, itera=1, input_n=self.input_n, intention_goal=torch.tensor([0]))  # [batch_size, out_n+kernel, 1, dim_used]
-        
+        xyz_out_all, intention_goal, phase_pred, intention_pred = self.net_pred(upper_body_sequence, output_n=self.output_n, itera=1, input_n=self.input_n, intention_goal=torch.tensor([0]))  # [batch_size, out_n+kernel, 1, dim_used]
         
 
         xyz_out_all = xyz_out_all[:, :, 0]
 
         xyz_out = xyz_out_all[:, self.kernel_size:]
-        phase_pred = phase_pred[:, :, self.kernel_size:]#.permute((0, 2, 1))
-        intention_pred = intention_pred[:, :, self.kernel_size:]
+        phase_pred = torch.FloatTensor(phase_pred) # [:, :, self.kernel_size:]#.permute((0, 2, 1))
+        # intention_pred = intention_pred[:, self.kernel_size:]
+        phase_pred = torch.zeros_like(intention_pred)
         
 
-        return xyz_out, phase_pred, intention_pred
+        return xyz_out, intention_goal, phase_pred, intention_pred
 
