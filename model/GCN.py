@@ -35,8 +35,8 @@ class GraphConvolution(nn.Module):
             self.bias.data.uniform_(-stdv, stdv)
 
     def forward(self, input):
-        support = torch.matmul(input, self.weight.double())
-        output = torch.matmul(self.att.double(), support.double())
+        support = torch.matmul(input, self.weight)
+        output = torch.matmul(self.att, support)
 
         if self.bias is not None:
             return output + self.bias
@@ -72,13 +72,13 @@ class GC_Block(nn.Module):
     def forward(self, x):
         y = self.gc1(x)
         b, n, f = y.shape
-        y = self.bn1.double()(y.view(b, -1).double()).view(b, n, f)
+        y = self.bn1(y.view(b, -1)).view(b, n, f)
         y = self.act_f(y)
         y = self.do(y)
 
         y = self.gc2(y)
         b, n, f = y.shape
-        y = self.bn2.double()(y.view(b, -1)).view(b, n, f)
+        y = self.bn2(y.view(b, -1)).view(b, n, f)
         y = self.act_f(y)
         y = self.do(y)
 
@@ -91,7 +91,7 @@ class GC_Block(nn.Module):
 
 
 class GCN(nn.Module):
-    def __init__(self, input_feature, hidden_feature, p_dropout, input_n=50, output_n=25, kernel_n=10, num_stage=1, node_n=48, phase=True, intention=True):
+    def __init__(self, input_feature, hidden_feature, p_dropout, input_n=50, output_n=25, kernel_n=10, num_stage=12, node_n=48, phase_pred=True, intention_pred=True):
         """
         :param input_feature: num of input feature
         :param hidden_feature: num of hidden feature
@@ -102,11 +102,11 @@ class GCN(nn.Module):
         super(GCN, self).__init__()
         self.num_stage = num_stage
         self.input_feature = input_feature
-        self.phase = phase
-        self.intention = intention
+        self.phase_pred = phase_pred
+        self.intention_pred = intention_pred
 
         self.gc1 = GraphConvolution(input_feature, hidden_feature, node_n=node_n)
-        self.bn1 = nn.BatchNorm1d(node_n * hidden_feature).float()
+        self.bn1 = nn.BatchNorm1d(node_n * hidden_feature)
 
         self.gcbs = []
         for i in range(num_stage):
@@ -114,7 +114,7 @@ class GCN(nn.Module):
 
         self.gcbs = nn.ModuleList(self.gcbs)
 
-        if phase:
+        if phase_pred:
             input_feature += 1
             if output_n % 10 == 0:
                 k = 4
@@ -132,12 +132,12 @@ class GCN(nn.Module):
                 nn.Conv1d(in_channels=hidden_feature, out_channels=1, kernel_size=1, stride=s, padding=0, dilation=d),
                 nn.Sigmoid()
             )
-        if intention:
+        if intention_pred:
             input_feature += 1
             if output_n % 10 == 0:
                 k = 4
             else:
-                k = 3
+                k = 4
             Lin = node_n
             Lout = output_n + kernel_n
             s = 1
@@ -158,36 +158,34 @@ class GCN(nn.Module):
         #self.act_f = nn.ReLU()
 
     def forward(self, x):
-        x = x.double()
         y = self.gc1(x)
         b, n, f = y.shape
-        y = self.bn1.double()(y.view(b, -1)).view(b, n, f)
+        y = self.bn1(y.view(b, -1)).view(b, n, f)
         y = self.act_f(y)
         y = self.do(y)
 
         for i in range(self.num_stage):
             y = self.gcbs[i](y)
-        y = self.gc7.double()(y.double()).float()
+
+        y = self.gc7(y)
 
         phase = []
-        # if self.phase:
-        #     print("no")
-        #     phase = torch.unsqueeze(y[:, :, -2], dim=1)
-        #     phase = self.f_phase(phase)
+        if self.phase_pred:
+            phase = torch.unsqueeze(y[:, :, -2], dim=1)
+            phase = self.f_phase(phase)
+
 
 
         intention = []
-        if self.intention:
+        if self.intention_pred:
             intention = torch.unsqueeze(y[:, :, -1], dim=1)
             intention = self.f_intention(intention)
-            
-        phase = intention
-
+            intention = intention.permute((0, 2, 1))
 
         y = y[:, :, :self.input_feature] + x
 
-        # print(f'phase dimensions: {phase.shape}')
-        # print(f'intention dimensions: {intention.shape}')
+        #print(f'phase dimensions: {phase.shape}')
+        #print(f'intention dimensions: {intention.shape}')
 
         return y, phase, intention
 
@@ -253,6 +251,11 @@ class FusionGCN(nn.Module):
 
 if __name__== "__main__":
     batch, nodes, dct_n = 256, 27, 20*4
+    #print(f'Input tensor dims: {batch, nodes, dct_n}')
+    input = torch.rand((batch, nodes, dct_n))
+    GCN = FusionGCN(input_feature=dct_n, hidden_feature=512, p_dropout=0.3, num_stage=2, node_n=nodes)
+    prediction, phase, intention = GCN(input)
+    #print(f'Prediction tensor dims: {prediction.shape}')
     print('Input tensor dims:' + batch, nodes, dct_n)
     input = torch.rand((batch, nodes, dct_n))
     GCN = FusionGCN(input_feature=dct_n, hidden_feature=512, p_dropout=0.3, num_stage=2, node_n=nodes)

@@ -3,15 +3,25 @@ from torch import nn
 import torch
 # import model.transformer_base
 import math
-from model import GCN
-from model import AttModel
+import model.GCN as GCN
+import model.AttModel as AttModel
 import utils.util as util
 import numpy as np
 
+class PrintLayer(nn.Module):
+    def __init__(self):
+        super(PrintLayer, self).__init__()
+        
+    def forward(self, x):
+        print(x.shape)
+        return x
+
 class MixAttention(Module):
 
-    def __init__(self, input_n=50, output_n=25, in_features=33, kernel_size=10, d_model=512, num_stage=2, dct_n=10, num_heads=1, goal_features=-1,
-                 part_condition=False, fusion_model=0, obstacle_condition=False, phase=False, intention=False):
+    def __init__(self, input_n=50, output_n=25, in_features=33, kernel_size=10, d_model=512, num_stage=2, dct_n=10,
+                 itera=1, num_heads=1, goal_condition=False, fusion_model=0, obstacle_condition=False,
+                 phase_condition=False, intention_condition=False, phase_prediction=False, intention_prediction=False,
+                 robot_path_condition=False, device=0):
         super(MixAttention, self).__init__()
         self.input_n = input_n
         self.output_n = output_n
@@ -19,46 +29,63 @@ class MixAttention(Module):
         self.d_model = d_model
         self.dct_n = dct_n
         self.fusion_model = fusion_model
+        self.device = device
+
+        self.goal_condition = goal_condition
+        self.obstacle_condition = obstacle_condition
+        self.phase_condition = phase_condition
+        self.intention_condition = intention_condition
+        self.phase_prediction = phase_prediction
+        self.intention_prediction = intention_prediction
+        self.robot_path_condition = robot_path_condition
+
+        self._fusion_model = fusion_model
 
         self.atnn = nn.ModuleList()
 
-
         self.atnn.append(AttModel.MultiHeadAttModel(in_features=in_features, kernel_size=kernel_size,
-                                      d_model=d_model, num_stage=num_stage, dct_n=dct_n, num_heads=num_heads, parts=1))
+                                      d_model=d_model, num_stage=num_stage, dct_n=dct_n, num_heads=num_heads, parts=1, device=self.device))
 
         n = 2
         n_ = 2
 
-        if goal_features > 0:
+        if self.goal_condition:
             n += 1
-            self.features = nn.Linear(in_features=goal_features, out_features=in_features)
+            self.features = nn.Linear(in_features=3, out_features=in_features)
             self.atnn.append(AttModel.MultiHeadAttModel(in_features=in_features, kernel_size=kernel_size,
-                                      d_model=d_model, num_stage=num_stage, dct_n=dct_n, num_heads=num_heads))
+                                      d_model=d_model, num_stage=num_stage, dct_n=dct_n, num_heads=num_heads, device=self.device))
 
-        if part_condition:
-            n += 1
-            self.atnn.append(AttModel.MultiHeadAttModel(in_features=in_features, kernel_size=kernel_size,
-                                                        d_model=d_model, num_stage=num_stage, dct_n=dct_n,
-                                                        num_heads=num_heads, parts=3))
+        # if part_condition:
+        #     n += 1
+        #     self.atnn.append(AttModel.MultiHeadAttModel(in_features=in_features, kernel_size=kernel_size,
+        #                                                 d_model=d_model, num_stage=num_stage, dct_n=dct_n,
+        #                                                 num_heads=num_heads, parts=3))
 
-        if obstacle_condition:
-            #self.obstacle_features = nn.ModuleList()
+        if self.obstacle_condition:
             n += 1
             self.obstacle_features = nn.Linear(in_features=3*3, out_features=in_features)
-            #self.obstacle_features = nn.Conv2d(in_channels=1, out_channels=4, kernel_size=(3,3))
             self.atnn.append(AttModel.MultiHeadAttModel(in_features=in_features, kernel_size=kernel_size,
                                                         d_model=d_model, num_stage=num_stage, dct_n=dct_n,
-                                                        num_heads=num_heads))
-            #for obstacle in obstacles:
-            #n += 1
-            #self.obstacle_features.append(nn.Linear(in_features=3, out_features=in_features))
-            #self.atnn.append(AttModel.MultiHeadAttModel(in_features=in_features, kernel_size=kernel_size,
-            #                                            d_model=d_model, num_stage=num_stage, dct_n=dct_n,
-            #                                            num_heads=num_heads))
+                                                        num_heads=num_heads, device=self.device))
 
+        if self.robot_path_condition:
+            # self.robot_path_condition = nn.Sequential(nn.Conv1d(in_channels=2, out_channels=d_model, kernel_size=6,
+            #                                          bias=False),
+            #                                nn.ReLU(),
+            #                                nn.BatchNorm1d(d_model),
+            #                                nn.Conv1d(in_channels=d_model, out_channels=d_model, kernel_size=5,
+            #                                          bias=False),
+            #                                nn.ReLU(),
+            #                                nn.BatchNorm1d(d_model))
+
+            n += 1
+            self.path_features = nn.Linear(in_features=2, out_features=in_features)
+            self.atnn.append(AttModel.MultiHeadAttModel(in_features=in_features, kernel_size=kernel_size,
+                                                        d_model=d_model, num_stage=num_stage, dct_n=dct_n,
+                                                        num_heads=num_heads, device=self.device))
 
         self.phase_detector = []
-        if phase:
+        if self.phase_condition:
             self.phase_detector = nn.Sequential(nn.Conv1d(in_channels=27, out_channels=48, kernel_size=1, padding=0),
                                               nn.ReLU(),
                                               nn.Conv1d(in_channels=48, out_channels=1, kernel_size=1, padding=0),
@@ -77,84 +104,105 @@ class MixAttention(Module):
                 n += 1
 
         self.intention_detector = []
-        if intention:
-            self.intention_detector = nn.Sequential(nn.Conv1d(in_channels=27, out_channels=48, kernel_size=1, padding=0),
-                                              nn.ReLU(),
-                                              nn.Conv1d(in_channels=48, out_channels=5, kernel_size=1, padding=0))
-
-            """
-            self.intention_condition = nn.Sequential(nn.Linear(in_features=1, out_features=d_model),
-                                                 nn.ReLU(),
-                                                 nn.BatchNorm1d(d_model),
-                                                 nn.Linear(in_features=d_model, out_features=dct_n),
-                                                 nn.ReLU(),
-                                                 nn.BatchNorm1d(dct_n))
-            """
-
-            self.intention_condition = nn.Sequential(nn.Linear(in_features=5, out_features=d_model),
+        if self.intention_condition:
+            # self.intention_network = nn.Sequential(nn.Linear(in_features=5, out_features=d_model),
+            self.intention_network = nn.Sequential(nn.Linear(in_features=1, out_features=d_model),
+                                                     nn.BatchNorm1d(num_features=d_model),
                                                      nn.ReLU(),
-                                                     nn.BatchNorm1d(d_model),
                                                      nn.Linear(in_features=d_model, out_features=dct_n),
-                                                     nn.ReLU(),
-                                                     nn.BatchNorm1d(dct_n))
+                                                     nn.BatchNorm1d(num_features=dct_n),
+                                                     nn.ReLU()
+                                                     )
 
+            self.intention_predictor = nn.Sequential(nn.Conv1d(in_channels=in_features, out_channels=d_model, kernel_size=5, padding=0),
+                                                     # PrintLayer(),
+                                                     nn.Dropout(0.3),
+                                                     nn.BatchNorm1d(num_features=d_model),
+                                                     nn.ReLU(),
+                                                     nn.Conv1d(in_channels=d_model, out_channels=int(d_model/2), kernel_size=4, padding=0),
+                                                     # PrintLayer(),
+                                                     nn.Dropout(0.3),
+                                                     nn.BatchNorm1d(num_features=int(d_model/2)),
+                                                     nn.ReLU(),
+                                                     nn.Flatten(),
+                                                     # PrintLayer(),
+                                                     nn.Linear(in_features=11008, out_features=int(d_model/4)),
+                                                     nn.Dropout(0.3),
+                                                     # PrintLayer(),
+                                                     nn.ReLU(),
+                                                     nn.Linear(in_features=int(d_model/4), out_features=4))
 
             self.intention_condition_pre = nn.Conv1d(in_channels=1, out_channels=in_features, kernel_size=1, padding=0)
             if fusion_model == 0:
                 n += 1
 
-        noise = True
+        if self.intention_prediction:
+            self.intention_detector = nn.Sequential(nn.Conv1d(in_channels=in_features, out_channels=d_model, kernel_size=5, padding=0),
+                                                    # PrintLayer(),
+                                                    nn.Dropout(0.3),
+                                                    nn.BatchNorm1d(num_features=d_model),
+                                                    nn.ReLU(),
+                                                    nn.Conv1d(in_channels=d_model, out_channels=int(d_model/2), kernel_size=4, padding=0),
+                                                    # PrintLayer(),
+                                                    nn.Dropout(0.3),
+                                                    nn.BatchNorm1d(num_features=int(d_model/2)),
+                                                    nn.ReLU(),
+                                                    nn.Flatten(),
+                                                    # PrintLayer(),
+                                                    nn.Linear(in_features=7168, out_features=int(d_model/4)),
+                                                    nn.Dropout(0.3),
+                                                    # PrintLayer(),
+                                                    nn.ReLU(),
+                                                    nn.Linear(in_features=int(d_model/4), out_features=4))
+
+
+
+        noise = False
         if noise:
             self.noise_embedding = nn.Sequential(nn.Linear(in_features=128, out_features=d_model),
                                                      nn.ReLU(),
                                                      nn.BatchNorm1d(d_model),
                                                      nn.Linear(in_features=d_model, out_features=dct_n),
                                                      nn.ReLU(),
-                                                     nn.BatchNorm1d(dct_n),)
-
-
+                                                     nn.BatchNorm1d(dct_n))
         self.gcn = GCN.GCN(output_n=output_n, input_feature=(dct_n) * n, hidden_feature=d_model, p_dropout=0.3,
-                           num_stage=num_stage,
-                           node_n=in_features)
+                           num_stage=num_stage, node_n=in_features, phase_pred=phase_prediction, intention_pred=intention_prediction)
 
-        if fusion_model == 1:
-            self._dct_att_tmp_weights = nn.Parameter(torch.ones(n-1))
+        if self.fusion_model == 1:
+            self._dct_att_tmp_weights = nn.Parameter(torch.ones(n-1)) # .to(self.device)
 
             self.gcn = GCN.GCN(output_n=output_n, input_feature=(dct_n) * n_, hidden_feature=d_model, p_dropout=0.3,
-                               num_stage=num_stage,
-                               node_n=in_features)
-            #self.fusion_module = GCN.FusionGCN(input_feature=(dct_n) * n, hidden_feature=d_model, p_dropout=0.3,
+                               num_stage=num_stage, node_n=in_features, phase_pred=phase_prediction, intention_pred=intention_prediction)
+            # self.fusion_module = GCN.FusionGCN(input_feature=(dct_n) * n, hidden_feature=d_model, p_dropout=0.3,
             #                   node_n=in_features)
 
-            self.fusion_module = GCN.FusionGCN(input_feature=(dct_n) * 2, hidden_feature=d_model, p_dropout=0.3,
-                               node_n=in_features)
+            # self.fusion_module = GCN.FusionGCN(input_feature=(dct_n) * 2, hidden_feature=d_model, p_dropout=0.3,
+            #                   node_n=in_features)
 
-        elif fusion_model == 2:
+        elif self.fusion_model == 2:
             self.gcn = GCN.GCN(output_n=output_n, input_feature=(dct_n) * n_, hidden_feature=d_model, p_dropout=0.3,
                            num_stage=num_stage,
-                           node_n=in_features, input_n=input_n, kernel_n=kernel_size)
+                           node_n=in_features, input_n=input_n, kernel_n=kernel_size, phase_pred=phase_prediction, intention_pred=intention_prediction)
 
             #self.fusion_module = GCN.FusionGCN(input_feature=(dct_n) * (n-1), hidden_feature=d_model, p_dropout=0,
             #                                   output_feature=(n - 1), node_n=in_features)
 
-            self.fusion_module = GCN.FusionGCN(input_feature=in_features * (n - 1), hidden_feature=d_model, p_dropout=0.3,
-                                               output_feature=(n - 1), node_n=35)
+            # self.fusion_module = GCN.FusionGCN(input_feature=in_features * (n - 1), hidden_feature=d_model, p_dropout=0.3,
+            #                                    output_feature=(n - 1), node_n=35)
 
 
-    def forward(self, src, output_n=25, input_n=50, itera=1, goal=[], part_condition=False, obstacles=[],
-                phase=[], intention=[], phase_goal=torch.tensor([]), intention_goal=torch.tensor([]), z=torch.tensor([])):
+    def forward(self, src, output_n=25, input_n=50, itera=1, goal=torch.Tensor([]), obstacles=torch.Tensor([]),
+                robot_path=torch.Tensor([]), phase=torch.Tensor([]), intention=torch.Tensor([]), phase_goal=torch.tensor([]),
+                intention_goal=torch.tensor([]), z=torch.tensor([])):
         dct_n = self.dct_n
-        src_tmp = src[:, :input_n].clone()
+
+        src_tmp = src[:, :input_n].clone().to(self.device)
+
         # Create DCT matrix and its inverse
         dct_m, idct_m = util.get_dct_matrix(self.kernel_size + output_n)
-        dct_m = torch.from_numpy(dct_m).float()
-        idct_m = torch.from_numpy(idct_m).float()
-
-        if torch.cuda.is_available():
-            src = src.cuda()
-            dct_m = dct_m.cuda()
-            idct_m = idct_m.cuda()
-            
+        dct_m = torch.from_numpy(dct_m).float().to(self.device)
+        idct_m = torch.from_numpy(idct_m).float().to(self.device)
+        
 
         idx = list(range(-self.kernel_size, 0, 1)) + [-1] * output_n
         outputs = []
@@ -165,58 +213,64 @@ class MixAttention(Module):
         inputs = [src]
         
 
-        if goal != []:
-            if torch.cuda.is_available():
-                goal = goal.cuda()
+        if self.goal_condition:
             goal = self.features(goal)
-
             inputs.append(goal)
 
             #dct_goal_tmp = self.atnn[1](goal, output_n=25, input_n=50, itera=1, dct_m=dct_m)
-
             #dct_att_tmp = torch.cat((dct_att_tmp, dct_goal_tmp), dim=-1)
 
-        if part_condition:
-            inputs.append(src)
-            #dct_parts_tmp = self.atnn[2](src, output_n=25, input_n=50, itera=1, dct_m=dct_m)
-            #dct_att_tmp = torch.cat((dct_att_tmp, dct_parts_tmp), dim=-1)
+        #if part_condition:
+        #   inputs.append(src)
+        #   dct_parts_tmp = self.atnn[2](src, output_n=25, input_n=50, itera=1, dct_m=dct_m)
+        #   dct_att_tmp = torch.cat((dct_att_tmp, dct_parts_tmp), dim=-1)
 
-        if obstacles != []:
+        #if obstacles != []:
+        if self.obstacle_condition:
             obstacles_enc = self.obstacle_features(obstacles)
             inputs.append(obstacles_enc)
 
-        if len(phase_goal.shape) > 1:
+        if self.robot_path_condition:
+            robot_enc = self.path_features(robot_path)
+            inputs.append(robot_enc)
+
+        if self.phase_condition:
             phase_goal = self.phase_condition(phase_goal)
+            
 
-        if len(intention_goal.shape) > 1:
-            intention_goal = self.intention_condition(intention_goal)
+        # Initialize pre_intention_predicition variable
+        pre_intention_prediction = torch.empty((0, 0, 0)).to(self.device)
 
-        if len(z.shape) > 1:
-            z = self.noise_embedding(z)
-            #print(z.shape)
+
+        if self.intention_condition:
+            # print(f"src_tmp[0]: {src_tmp[0]}")
+            pre_intention_prediction = self.intention_predictor(src_tmp.float())
+            # print(f"pre_intention_prediction: {pre_intention_prediction}")
+            # print(f"pre_intention_prediction.shape: {pre_intention_prediction.shape}")
+            pre_intention_prediction_idx = torch.argmax(nn.LogSoftmax(dim=1)(pre_intention_prediction), dim=1, keepdim=True)
+            # print(f"pre_intention_prediction_idx: {pre_intention_prediction_idx}")
+            intention_goal = self.intention_network(pre_intention_prediction_idx.float())
+            # intention_goal = self.intention_network(intention_goal)
+            
+
+        #if len(z.shape) > 1:
+        #    z = self.noise_embedding(z)
+        #    #print(z.shape)
+
 
         # Generate internal variables U
         for source, module in zip(inputs, self.atnn):
             dct_source_tmp = module(source, output_n=self.output_n, input_n=self.input_n, itera=1, dct_m=dct_m)
-            
-            dct_source_tmp = dct_source_tmp.transpose(1, 2)
             dct_source_tmp = torch.unsqueeze(dct_source_tmp, dim=0)
             #print(dct_source_tmp.shape)
             dct_att_tmp.append(dct_source_tmp)
 
-
         # Set the temporal variable to input the GCN
-        input_gcn = src_tmp[:, :, idx]
+        input_gcn = src_tmp.permute((0, 2, 1))[:, idx].to(self.device)
 
-        phase_pred = torch.empty((0, 0, 0))
+        phase_pred = torch.empty((0, 0, 0)).to(self.device)
 
-        intention_pred = torch.empty((0, 0, 0))
-
-        if torch.cuda.is_available():
-            phase_pred = phase_pred.cuda()
-            intention_pred = intention_pred.cuda()
-            intention_goal = intention_goal.cuda()
-            input_gcn = input_gcn.cuda()
+        intention_pred = torch.empty((0, 0, 0)).to(self.device)
 
         if self.fusion_model == 0:
             dct_att_tmp = torch.squeeze(torch.cat(dct_att_tmp, dim=-1), dim=0)
@@ -252,11 +306,15 @@ class MixAttention(Module):
 
         elif self.fusion_model == 1:
             dct_att_tmp = torch.cat(dct_att_tmp).permute(1, 2, 3, 0)
+            dct_att_tmp = dct_att_tmp.to(self.device)
             dct_att_tmp = torch.sum(self._dct_att_tmp_weights * dct_att_tmp, dim=3)
 
-            # dct_att_tmp += torch.unsqueeze(phase_goal, dim=1)
+            if self.phase_condition:
+                dct_att_tmp += torch.unsqueeze(phase_goal, dim=1)
 
-            dct_att_tmp += torch.unsqueeze(intention_goal, dim=1)
+            if self.intention_condition:
+                dct_att_tmp += torch.unsqueeze(intention_goal, dim=1)
+
 
             #dct_att_tmp += torch.unsqueeze(z, dim=1)
 
@@ -267,10 +325,10 @@ class MixAttention(Module):
 
 
             # Compute the DCT coeff for the GCN input seq
-            dct_in_tmp_ = torch.matmul(dct_m[:dct_n].unsqueeze(dim=0).double(), input_gcn.transpose(1, 2).double())
+            dct_in_tmp_ = torch.matmul(dct_m[:dct_n].unsqueeze(dim=0), input_gcn.float()).transpose(1, 2).to(self.device)
 
             # Concatenate the DCT coeff and the att output
-            dct_in_tmp = torch.cat([dct_in_tmp_.transpose(1, 2), dct_att_tmp.transpose(1, 2)], dim=-1)
+            dct_in_tmp = torch.cat([dct_in_tmp_, dct_att_tmp], dim=-1)
             b, f, _ = dct_in_tmp.shape
 
             dct_out_tmp, phase_pred, intention_pred = self.gcn(dct_in_tmp) #!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! PHASE AND INTENTION  ADDED
@@ -286,8 +344,8 @@ class MixAttention(Module):
             #dct_att_tmp_weighted = torch.cat((dct_att_tmp_weighted, dct_att_tmp_weighted_), dim=-1)
 
             #dct_out_tmp = self.gcn(dct_att_tmp_weighted)
-            out_gcn = torch.matmul(idct_m[:, :dct_n].unsqueeze(dim=0).float(),
-                                   dct_out_tmp[:, :, :dct_n].transpose(1, 2).float())
+            out_gcn = torch.matmul(idct_m[:, :dct_n].unsqueeze(dim=0),
+                                   dct_out_tmp[:, :, :dct_n].transpose(1, 2))
 
             #print(f'dct_out_tmp dimensions: {dct_out_tmp[:, :, :dct_n].shape}')
             #print(f'idct_m dimensions: {idct_m[:, :dct_n].shape}')
@@ -300,19 +358,22 @@ class MixAttention(Module):
             #outputs = torch.cat(outputs, dim=2)
 
             #outputs = torch.squeeze(outputs, dim=2)
-            outputs = outputs.permute((0, 2, 1))
+            # outputs = outputs.permute((0, 2, 1))
 
             #if self.phase_detector != []:
             #    phase_pred = self.phase_detector(outputs)
 
-            #if self.intention_detector != []:
-            #    intention_pred = self.intention_detector(outputs)
+            if self.intention_prediction:
+               intention_pred = self.intention_detector(outputs.permute(0, 2, 1))
+               # print(f"post_intention_prediction: {intention_pred}")
+               post_intention_prediction_idx = torch.argmax(nn.LogSoftmax(dim=1)(intention_pred), dim=1, keepdim=True)
+               # print(f"post_intention_prediction_idx: {post_intention_prediction_idx}")
 
-            outputs = outputs.permute((0, 2, 1))
+            # outputs = outputs.permute((0, 2, 1))
             outputs = torch.unsqueeze(outputs, dim=2)
 
 
-            return outputs, phase_pred, intention_pred
+            return outputs, pre_intention_prediction, phase_pred, intention_pred
 
         elif self.fusion_model == 2:
 
@@ -351,5 +412,5 @@ class MixAttention(Module):
 
 if __name__ == "__main__":
     model = MixAttention()
-    src = torch.rand([8, 75, 33])
+    src = torch.rand([1, 27, 50])
     print(model(src).shape)

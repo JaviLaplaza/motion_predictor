@@ -8,9 +8,9 @@ import utils.util as util
 import numpy as np
 
 class MultiHeadAttModel(Module):
-    def __init__(self, in_features=33, kernel_size=10, d_model=512, num_stage=2, dct_n=10, num_heads=1, parts=1):
+    def __init__(self, in_features=33, kernel_size=10, d_model=512, num_stage=2, dct_n=10, num_heads=1, parts=1, device=0):
         super(MultiHeadAttModel, self).__init__()
-        self.heads = nn.ModuleList([AttHeadModel(in_features, kernel_size, d_model, num_stage, dct_n, parts) for _ in range(num_heads)])
+        self.heads = nn.ModuleList([AttHeadModel(in_features, kernel_size, d_model, num_stage, dct_n, parts, device) for _ in range(num_heads)])
         self.linear = nn.Linear(num_heads * 20, 20)
 
     def forward(self, src, output_n=25, input_n=50, itera=1, dct_m=[]):
@@ -18,7 +18,7 @@ class MultiHeadAttModel(Module):
 
 
 class AttHeadModel(Module):
-    def __init__(self, in_features=33, kernel_size=10, d_model=512, num_stage=2, dct_n=10, parts=1):
+    def __init__(self, in_features=33, kernel_size=10, d_model=512, num_stage=2, dct_n=10, parts=1, device=0):
         super(AttHeadModel, self).__init__()
 
         self.in_features = [in_features]
@@ -30,6 +30,7 @@ class AttHeadModel(Module):
         # self.seq_in = seq_in
         self.dct_n = dct_n
         self.parts = parts
+        self.device = device
         # ks = int((kernel_size + 1) / 2)
 
         assert kernel_size == 10
@@ -71,13 +72,10 @@ class AttHeadModel(Module):
 
         if dct_m == []:
             # Create DCT matrix and its inverse
-            dct_m, idct_m = util.get_dct_matrix(self.kernel_size + output_n)
+            dct_m, idct_m = util.get_dct_matrix(self.kernel_size + output_n).to(self.device)
             dct_m = torch.from_numpy(dct_m).float()
-            idct_m = torch.from_numpy(idct_m).float()
+            idct_m = torch.from_numpy(idct_m).float().to(self.device)
 
-            if torch.cuda.is_available():
-                dct_m = dct_m.cuda()
-                idct_m = idct_m.cuda()
 
         # Take only the input seq
         src = src[:, :, :input_n]  # [bs,in_n,dim]
@@ -111,7 +109,7 @@ class AttHeadModel(Module):
                 full_body = [torso_src_tmp, right_arm_src_tmp, left_arm_src_tmp]
 
 
-        full_body_dct = torch.Tensor().cuda()
+        full_body_dct = torch.Tensor().to(self.device)
 
         for i, part in enumerate(full_body):
             src_tmp = part
@@ -119,6 +117,9 @@ class AttHeadModel(Module):
             # Temporal variables for keys and query
             src_key_tmp = src_tmp[:, :, :(input_n - output_n)].clone().float()  # [batch, dims, input_n-output_n]
             src_query_tmp = src_tmp[:, :, -self.kernel_size:].clone().float() # [batch, dims, kernel, bins]
+            
+            src_key_tmp = src_key_tmp.to(self.device)
+            src_query_tmp = src_query_tmp.to(self.device)
             
 
             # Compute number of subsequences
@@ -131,7 +132,7 @@ class AttHeadModel(Module):
                   np.expand_dims(np.arange(vn), axis=1)
 
             # Get raw poses corresponding to the Value of each subsequence
-            src_value_tmp = src_tmp[:, :, idx].clone().reshape([bs * vn, vl, -1])
+            src_value_tmp = src_tmp[:, :, idx].clone().reshape([bs * vn, vl, -1]).to(self.device)
             
 
             # Obtain the DCT corresponding to the Value raw poses
