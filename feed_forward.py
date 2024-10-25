@@ -39,8 +39,8 @@ class Infer():
 
         # Load weights
         #model_path_len = './ckpt_best.pth.tar'
-        # model_path_len = opt.weights_file
-        model_path_len = '/home/irilab/iri-lab/motion_prediction_ws/src/human_detection/iri_motion_prediction/weights/ckpt_best.pth.tar'
+        model_path_len = opt.weights_file
+        # model_path_len = '/home/irilab/iri-lab/motion_prediction_ws/src/human_detection/iri_motion_prediction/weights/ckpt_best.pth.tar'
         print(">>> loading ckpt len from '{}'".format(model_path_len))
         ckpt = torch.load(model_path_len)
         # self.net_pred.load_state_dict(ckpt['state_dict'])
